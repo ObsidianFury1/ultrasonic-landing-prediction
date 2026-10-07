@@ -1,0 +1,30 @@
+{
+  "sensors": [
+    {
+      "f0": 1.0,
+      "n_valid": 0,
+      "mu": NaN,
+      "sigma": NaN,
+      "w": NaN,
+      "enabled": false
+    },
+    {
+      "f0": 1.0,
+      "n_valid": 0,
+      "mu": NaN,
+      "sigma": NaN,
+      "w": NaN,
+      "enabled": false
+    },
+    {
+      "f0": 1.0,
+      "n_valid": 0,
+      "mu": NaN,
+      "sigma": NaN,
+      "w": NaN,
+      "enabled": false
+    }
+  ],
+  "k_sigma": 3.5,
+  "d_max_m": 2.0
+}

@@ -1,0 +1,153 @@
+{
+  "session_id": "sim_2026-07-09_010625_S11",
+  "created": "2026-07-09T01:06:32",
+  "simulated": true,
+  "seed": 2261209996,
+  "fw_header": "# fw=05,slot_ms=18,timeout_us=12500",
+  "temperature_c": 20.0,
+  "truth": {
+    "throw": {
+      "x0": -1.6843740465089647,
+      "y0": 0.8291981322242952,
+      "z0": -0.6261075775637005,
+      "vx": 3.459295246392429,
+      "vy": 4.776611482782486,
+      "vz": 1.2858729159864555,
+      "drag": "quadratic",
+      "drag_k": 0.020795568037554633
+    },
+    "temperature_c": 20.0,
+    "v_sound_m_s": 343.52,
+    "noise_mm": 8.0,
+    "t_launch_s": 11.34,
+    "t_land_s": 12.432808185825909,
+    "flight_time_s": 1.0928081858259096,
+    "apex_y_m": 1.9532497173259662,
+    "landing": {
+      "x_m": 1.9108836712283748,
+      "z_m": 0.7103046671127035,
+      "r_m": 2.038629226978099,
+      "theta_deg": 20.390869738472066
+    },
+    "n_triplets": {
+      "background_pre": 210,
+      "flight": 22,
+      "background_post": 12,
+      "dropouts": []
+    }
+  },
+  "config_snapshot": {
+    "array": {
+      "S1_xz": [
+        0.5774,
+        0.0
+      ],
+      "S2_xz": [
+        -0.2887,
+        0.5
+      ],
+      "S3_xz": [
+        -0.2887,
+        -0.5
+      ],
+      "S_height_m": 0.045,
+      "tilt_deg": 55.0
+    },
+    "ball": {
+      "radius_m": 0.1194
+    },
+    "acquisition": {
+      "port": "/dev/ttyACM0",
+      "baud": 115200,
+      "slot_ms": 18,
+      "triplet_ms": 54,
+      "pulse_timeout_us": 12500,
+      "ceiling_height_m": null
+    },
+    "corrections": {
+      "central_difference": true
+    },
+    "gates": {
+      "d_max_m": 2.0,
+      "bg_k_sigma": 3.5,
+      "bg_n_triplets": 200,
+      "bg_min_samples": 30,
+      "bg_timeout_skip": 0.9,
+      "d_min_band_m": 0.025,
+      "arm_M": 2,
+      "close_K": 3
+    },
+    "kalman": {
+      "sigma_pos_m": 0.01,
+      "hetero_R": true,
+      "q_scale": 0.0001
+    },
+    "landing": {
+      "min_fit_points": 4
+    },
+    "ground_truth": {
+      "sigma_tape_m": 0.005,
+      "recommend_sensors": true,
+      "cond_warn": 10000.0,
+      "residual_warn_m": 0.05
+    },
+    "bias": {
+      "model_path": "correction_model.json",
+      "alpha": 0.05,
+      "min_throws": 8
+    },
+    "sessions": {
+      "demo_subdir": "demo"
+    },
+    "simulator": {
+      "beam_cone_enabled": true,
+      "beam_half_angle_deg": 7.0,
+      "session_prefix": "sim",
+      "session_name_scheme": "{prefix}_{date}_{time}_S{idx:02d}"
+    }
+  },
+  "gate_summary": {
+    "n_triplets_total": 244,
+    "n_triplets_valid": 9,
+    "n_triplets_in_throw": 9,
+    "n_triplets_used": 9,
+    "throw_start": 217,
+    "throw_end": 225,
+    "malformed_lines": 0,
+    "dropped_readings": 0,
+    "background_enabled": [
+      false,
+      false,
+      false
+    ],
+    "fw_header": "# fw=05,slot_ms=18,timeout_us=12500"
+  },
+  "processing_warnings": [],
+  "prediction": {
+    "raw": {
+      "x_m": 1.9292978368317737,
+      "z_m": 0.7141652896569348,
+      "r_m": 2.057236545503345,
+      "theta_deg": 20.312965141636944,
+      "sigma_r_m": 0.02654745808171636,
+      "sigma_theta_deg": 0.5889649214745324,
+      "heading_deg": 22.536832390380543,
+      "v_h_m_s": 3.7684111023454694,
+      "n_points": 9,
+      "dof": 6,
+      "cov_xz_m2": [
+        [
+          0.0006945006915515168,
+          5.9639204981330266e-05
+        ],
+        [
+          5.9639204981330266e-05,
+          0.0004574671067331346
+        ]
+      ]
+    },
+    "corrected": null,
+    "model_id": null
+  },
+  "small_sample_caveat": "R7 small-sample caveat: the landing covariance rests on only 6 degree(s) of freedom (9 fitted points, 3 parabola parameters), so the uncertainty ellipse is itself highly uncertain \u2014 treat (sigma_r, sigma_theta) as indicative, not as a calibrated confidence region."
+}

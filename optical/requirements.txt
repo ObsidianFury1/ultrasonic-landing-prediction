@@ -1,0 +1,9 @@
+# Optical Ground-Truth Module — core dependencies (Phases 0-5).
+# Dependency ceiling per Optical.md (CLAUDE.md) §0.1: nothing beyond this list
+# without a spec amendment. The optional Phase-6 ML dependency (ultralytics/PyTorch)
+# lives ONLY in requirements-ml.txt and is never imported by core code.
+opencv-python
+numpy
+matplotlib
+pyyaml
+pytest

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign Dashboard</title>
+<style>
+  :root{
+    --scope-bg:#060b14; --bg:#070d17; --panel:rgba(13,22,34,.6);
+    --hair:rgba(96,168,196,.20); --hair-soft:rgba(96,168,196,.10); --grid:rgba(94,180,205,.13);
+    --ink:#e9f5f6; --ink-dim:#7e98a7; --ink-faint:#5b7180;
+    --phosphor:#46e3c6; --amber:#ffb24a; --coral:#ff5d6c; --steel:#6fb0ff;
+    --font-display:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 18% -10%,rgba(70,227,198,.05),transparent 60%),
+      radial-gradient(900px 600px at 110% 120%,rgba(111,176,255,.05),transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--font-mono);-webkit-font-smoothing:antialiased;
+    min-height:100vh;letter-spacing:.01em;counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.35;
+    background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px);
+    mix-blend-mode:overlay;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+
+  header.bar{
+    display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+    border:1px solid var(--hair);border-radius:3px;
+    background:linear-gradient(180deg,rgba(18,30,46,.55),rgba(10,17,27,.55));
+    padding:12px 16px 14px;margin-bottom:16px;position:relative;
+  }
+  header.bar::after{content:"";position:absolute;left:16px;right:16px;bottom:4px;height:3px;
+    background-image:repeating-linear-gradient(90deg,var(--hair) 0 1px,transparent 1px 11px)}
+  .lamp{width:8px;height:8px;border-radius:50%;background:var(--phosphor);
+    box-shadow:0 0 10px var(--phosphor);flex:none;animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .sys{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase}
+  .sys b{color:var(--ink);font-weight:600}
+  .spacer{flex:1}
+  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-dim);border:1px solid var(--hair);border-radius:2px;padding:5px 12px}
+
+  .panel{
+    border:1px solid var(--hair);border-radius:3px;background:var(--panel);
+    backdrop-filter:blur(6px);padding:15px 16px;position:relative}
+  .panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;
+    border:1.5px solid var(--phosphor);opacity:.5;pointer-events:none}
+  .panel::before{top:5px;left:5px;border-right:0;border-bottom:0}
+  .panel::after{bottom:5px;right:5px;border-left:0;border-top:0}
+  .panel .eyebrow{
+    font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-faint);display:flex;align-items:center;gap:9px;margin:0 0 12px}
+  .eyebrow::before{counter-increment:sec;content:"[" counter(sec,decimal-leading-zero) "]";
+    color:var(--phosphor);letter-spacing:.08em}
+  .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hair),transparent)}
+
+  .grid{display:grid;gap:14px}
+  .camp-top{grid-template-columns:1fr 1fr}
+  @media(max-width:880px){.camp-top{grid-template-columns:1fr}}
+  .scopewrap{position:relative;display:flex;justify-content:center;align-items:center;min-height:360px}
+  .scopewrap .sweep{position:absolute;width:488px;height:488px;max-width:90%;aspect-ratio:1;border-radius:50%;
+    background:conic-gradient(from 0deg,rgba(70,227,198,.13),transparent 22%);
+    animation:sweep 5.5s linear infinite;pointer-events:none}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  canvas{position:relative;max-width:100%;display:block}
+  .profcanvas{margin-top:12px;display:flex;justify-content:center}
+
+  .camp-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  @media(max-width:680px){.camp-stat-row{grid-template-columns:1fr}}
+  .stat{border-top:2px solid rgba(96,168,196,.3)}
+  .stat::before,.stat::after{display:none}
+  .stat.ok{border-top-color:var(--phosphor)}
+  .stat.await{border-top-color:var(--amber)}
+  .stat .num{font-family:var(--font-mono);font-size:25px;font-weight:600;color:var(--ink);line-height:1;
+    letter-spacing:.01em;font-variant-numeric:tabular-nums}
+  .stat .num small{font-size:12px;color:var(--ink-dim);font-weight:400}
+  .stat .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);margin-top:8px}
+  .stat.ok .num{color:var(--phosphor)}
+  .stat.await .num{color:var(--amber);font-size:15px}
+
+  .bias-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10.5px;
+    letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--hair);border-radius:2px;padding:5px 12px;color:var(--phosphor)}
+  .bias-pill.nosig{color:var(--ink-dim)}
+  .bias-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--phosphor);box-shadow:0 0 7px var(--phosphor)}
+  .bias-pill.nosig .dot{background:var(--ink-dim);box-shadow:none}
+  .bias-meta{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-dim)}
+  .hint{font-size:11.5px;color:var(--ink-faint);margin-top:12px;line-height:1.55}
+
+  table.throws{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums}
+  table.throws th{text-align:right;font-weight:500;color:var(--ink-faint);letter-spacing:.12em;text-transform:uppercase;
+    font-size:9.5px;padding:8px 10px;border-bottom:1px solid var(--hair)}
+  table.throws th:first-child{text-align:left}
+  table.throws td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--hair-soft);color:var(--ink)}
+  table.throws td:first-child{text-align:left;color:var(--ink-dim)}
+  table.throws tr:hover td{background:rgba(70,227,198,.05)}
+  .empty{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);padding:10px 0}
+
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <span class="lamp"></span>
+    <span class="sys">Campaign &middot; <b id="h-n">--</b> ground-truthed</span>
+    <span class="spacer"></span>
+    <span class="badge">Campaign dashboard</span>
+  </header>
+
+  <div class="grid camp-top">
+    <div class="panel">
+      <p class="eyebrow">Campaign scope &middot; all throws</p>
+      <div class="scopewrap"><div class="sweep"></div><canvas id="cscope" width="540" height="540"></canvas></div>
+    </div>
+    <div>
+      <div class="camp-stat-row">
+        <div class="panel stat"><div class="num" id="c-n">--</div><div class="lbl">Throws &middot; ground-truthed</div></div>
+        <div class="panel stat" id="card-corr"><div class="num" id="c-corr">--</div><div class="lbl">Mean error &middot; corrected</div></div>
+        <div class="panel stat" id="card-raw"><div class="num" id="c-raw">--</div><div class="lbl">Mean error &middot; raw</div></div>
+      </div>
+      <div class="panel" style="margin-bottom:16px">
+        <p class="eyebrow">Bias model &middot; throw-aligned</p>
+        <div id="bias-body"><div class="empty">No correction_model.json yet.</div></div>
+        <p class="hint" id="power-note"></p>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">Error distribution &middot; 2-D</p>
+        <div class="profcanvas" style="margin:0"><canvas id="chist" width="500" height="200"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <p class="eyebrow">Throws</p>
+    <table class="throws">
+      <thead><tr>
+        <th>Session</th><th>r (m)</th><th>θ (°)</th><th>used</th>
+        <th>raw err (mm)</th><th>corr err (mm)</th><th>φ (°)</th>
+      </tr></thead>
+      <tbody id="camprows"></tbody>
+    </table>
+    <div class="empty" id="throws-empty" hidden>No ground-truthed throws yet.</div>
+  </div>
+</div>
+
+<script>window.__DATA__ = {"n": 34, "awaiting": false, "raw": {"mean_mm": 92.40126802445614, "std_mm": 41.889219890871935, "ci_mm": [77.78542824338398, 107.01710780552831]}, "corrected": {"mean_mm": 64.47182254535774, "std_mm": 40.36605025571744, "ci_mm": [50.38744177461829, 78.5562033160972]}, "along_bias_mm": 67.1056335759746, "along_scatter_mm": 56.929534142581815, "mode": "scalar", "power_note": "Statistical power note: a 95% CI excludes zero at approximately N=3 throws. Current N=34.", "underpowered_null_note": "", "bias_model": {"present": true, "mode": "scalar", "along_mean_mm": 67.53442285837131, "along_ci_mm": [45.65092876641124, 89.41791695033139], "significant": true, "verdict": "accepted: validation error improved 0.090 -> 0.056 m (p = 0.0001); offsets refit on all throws", "created": "2026-07-09T22:14:59"}, "geometry": {"vertices_xz": [[0.5774, 0.0], [-0.2887, 0.5], [-0.2887, -0.5]]}, "throws": [{"session_id": "2026-07-09_T02", "r": 0.6919366393410621, "theta": 38.36304101125768, "x_pred": 0.5425433461005217, "z_pred": 0.4294450261263396, "x_actual": 0.4631888987787897, "z_actual": 0.33131698228409495, "heading_deg": 39.18596854801526, "used": 4, "err_raw_mm": 126.19921274731877, "err_corr_mm": 61.684322961040955}, {"session_id": "2026-07-09_T04", "r": 0.48242805410735246, "theta": 68.15716519903629, "x_pred": 0.17949308656858165, "z_pred": 0.4477935453575568, "x_actual": 0.1642691882604052, "z_actual": 0.35579420042292176, "heading_deg": 75.34447084505805, "used": 5, "err_raw_mm": 93.25045065896279, "err_corr_mm": 26.727187782168453}, {"session_id": "2026-07-09_T05", "r": 0.47831338389372213, "theta": 51.23854203274608, "x_pred": 0.29946216615028837, "z_pred": 0.3729693073919626, "x_actual": 0.28679925130429784, "z_actual": 0.2917999251546662, "heading_deg": 33.878216460985655, "used": 4, "err_raw_mm": 82.15119004117432, "err_corr_mm": 61.468499019904925}, {"session_id": "2026-07-09_T06", "r": 0.9088089062468946, "theta": 6.216939667001474, "x_pred": 0.9034641921570415, "z_pred": 0.09841789249776303, "x_actual": 0.8535219812815495, "z_actual": -0.008284105768560363, "heading_deg": -5.671173669159003, "used": 4, "err_raw_mm": 117.81146319929395, "err_corr_mm": 114.68222145555647}, {"session_id": "2026-07-09_T07", "r": 0.4008301613977762, "theta": 177.8234107478379, "x_pred": -0.40054096967114516, "z_pred": 0.015223334098223046, "x_actual": -0.42535933882232424, "z_actual": -0.11419046116056684, "heading_deg": -169.66854598436183, "used": 4, "err_raw_mm": 131.77208297134936, "err_corr_mm": 168.39679769678975}, {"session_id": "2026-07-09_T09", "r": 0.6589711834857721, "theta": -146.67492024435833, "x_pred": -0.5506145489539873, "z_pred": -0.3620312681866529, "x_actual": -0.44899321292674416, "z_actual": -0.3726275133358546, "heading_deg": -139.48642648878703, "used": 4, "err_raw_mm": 102.17228756969205, "err_corr_mm": 74.1263166644272}, {"session_id": "2026-07-09_T10", "r": 0.5632701151543094, "theta": 31.054916779511117, "x_pred": 0.48253844246635114, "z_pred": 0.29056819194140443, "x_actual": 0.45171989161591314, "z_actual": 0.2599882382298455, "heading_deg": 24.150283152227765, "used": 4, "err_raw_mm": 43.415626743398725, "err_corr_mm": 30.945835137651546}, {"session_id": "2026-07-09_T11", "r": 0.5371843227335443, "theta": -176.74434176522632, "x_pred": -0.5363173432293635, "z_pred": -0.030507440766046418, "x_actual": -0.41018140179014273, "z_actual": -0.005144323993040558, "heading_deg": -159.24637229541736, "used": 4, "err_raw_mm": 128.660652163743, "err_corr_mm": 62.99992304701742}, {"session_id": "2026-07-09_T14", "r": 0.43092214144567015, "theta": -147.56883437249246, "x_pred": -0.3637139477262704, "z_pred": -0.23109750370242862, "x_actual": -0.31708758301421053, "z_actual": -0.19039304143306013, "heading_deg": -139.45086504123782, "used": 4, "err_raw_mm": 61.894031496586706, "err_corr_mm": 5.677146946995825}, {"session_id": "2026-07-09_T15", "r": 0.9611819691559885, "theta": -119.8333123086373, "x_pred": -0.4781672720185221, "z_pred": -0.8338026371995644, "x_actual": -0.47520581335048195, "z_actual": -0.6935270780739164, "heading_deg": -121.16905166163207, "used": 4, "err_raw_mm": 140.30681638985206, "err_corr_mm": 88.47660913221816}, {"session_id": "2026-07-09_T17", "r": 0.5011043007965185, "theta": -77.2303064668649, "x_pred": 0.11076041840120165, "z_pred": -0.48871019018673884, "x_actual": 0.01901207363958946, "z_actual": -0.5115568400566627, "heading_deg": -77.35597559439925, "used": 5, "err_raw_mm": 94.55013578400902, "err_corr_mm": 117.46941524158859}, {"session_id": "2026-07-09_T20", "r": 0.6791992344585908, "theta": 169.2666047522319, "x_pred": -0.6673162448563812, "z_pred": 0.12649359446198857, "x_actual": -0.5694948488302504, "z_actual": 0.080702413304121, "heading_deg": 166.35281231345124, "used": 5, "err_raw_mm": 108.00860054798308, "err_corr_mm": 43.90750860343998}, {"session_id": "2026-07-09_T24", "r": 0.7034748269101391, "theta": 177.85945069570536, "x_pred": -0.702983949261271, "z_pred": 0.02627544818412928, "x_actual": -0.6461102068597374, "z_actual": -0.012258313790130478, "heading_deg": 176.71137697987197, "used": 4, "err_raw_mm": 68.69842346549811, "err_corr_mm": 36.2295304303518}, {"session_id": "2026-07-09_T28", "r": 0.4740601500247078, "theta": -160.80304469354138, "x_pred": -0.4476994877737497, "z_pred": -0.1558787813930127, "x_actual": -0.5445873386393779, "z_actual": -0.14765193222361514, "heading_deg": -172.54175314967483, "used": 4, "err_raw_mm": 97.23649876777873, "err_corr_mm": 163.85180110113546}, {"session_id": "2026-07-09_T29", "r": 1.089189651772152, "theta": -116.66300354414574, "x_pred": -0.4887651930112288, "z_pred": -0.9733666748087475, "x_actual": -0.44446269350508816, "z_actual": -0.8037965308601172, "heading_deg": -120.13433424606858, "used": 4, "err_raw_mm": 175.26193306377402, "err_corr_mm": 111.64821914644642}, {"session_id": "2026-07-09_T35", "r": 0.5040838473945292, "theta": 62.380973079657686, "x_pred": 0.2336883831406279, "z_pred": 0.4466433306220861, "x_actual": 0.17609459258574148, "z_actual": 0.33551076855616035, "heading_deg": 66.78216328691866, "used": 4, "err_raw_mm": 125.16984885273678, "err_corr_mm": 58.02376200161644}, {"session_id": "2026-07-09_T37", "r": 0.45307026764597763, "theta": 25.52933861129359, "x_pred": 0.4088346254373045, "z_pred": 0.19526114940852102, "x_actual": 0.3008235446534051, "z_actual": 0.24753929081950254, "heading_deg": 12.340305666177768, "used": 5, "err_raw_mm": 119.99749014663855, "err_corr_mm": 78.85129232163125}, {"session_id": "2026-07-09_T46", "r": 0.49674500799632, "theta": -164.30438268930328, "x_pred": -0.4782225999360816, "z_pred": -0.13438284071874068, "x_actual": -0.4442334995171341, "z_actual": -0.13205203422976486, "heading_deg": -159.9735531648773, "used": 4, "err_raw_mm": 34.068924347245705, "err_corr_mm": 36.06242775785688}, {"session_id": "2026-07-09_T47", "r": 0.6961918909299258, "theta": -24.22558858327977, "x_pred": 0.634883110691718, "z_pred": -0.2856686625358012, "x_actual": 0.5398779375982108, "z_actual": -0.2450243676602213, "heading_deg": -14.497016450994392, "used": 5, "err_raw_mm": 103.33412611746594, "err_corr_mm": 37.959409322936494}, {"session_id": "2026-07-09_T48", "r": 0.514600648645379, "theta": 29.694199773194686, "x_pred": 0.44702414919229894, "z_pred": 0.2549180998382541, "x_actual": 0.42713768162338833, "z_actual": 0.2882346028913556, "heading_deg": 29.693479987075797, "used": 6, "err_raw_mm": 38.800270205974805, "err_corr_mm": 77.21500359356072}, {"session_id": "2026-07-09_T49", "r": 0.8111872492711116, "theta": 26.842742760461732, "x_pred": 0.7237811860639981, "z_pred": 0.3662861560035061, "x_actual": 0.5601850661091058, "z_actual": 0.3095172095254256, "heading_deg": 24.386699575633354, "used": 5, "err_raw_mm": 173.16582731164564, "err_corr_mm": 106.09475907541226}, {"session_id": "2026-07-09_T52", "r": 0.723992422499352, "theta": -168.22749191760317, "x_pred": -0.708763530248531, "z_pred": -0.14771352688944897, "x_actual": -0.6113917637791202, "z_actual": -0.2127736771802384, "heading_deg": -164.13452577097272, "used": 5, "err_raw_mm": 117.10714778028532, "err_corr_mm": 89.5904360705705}, {"session_id": "2026-07-09_T53", "r": 0.6898538287679377, "theta": 67.14902968616062, "x_pred": 0.26789474689087334, "z_pred": 0.6357127571899577, "x_actual": 0.3002182696865696, "z_actual": 0.4855668126026145, "heading_deg": 69.94451279962674, "used": 5, "err_raw_mm": 153.58585482377416, "err_corr_mm": 102.93898341905893}, {"session_id": "2026-07-09_T54", "r": 0.6564984288753812, "theta": -156.41388281632075, "x_pred": -0.6016543581500429, "z_pred": -0.2626827372228787, "x_actual": -0.5512151639900456, "z_actual": -0.21241101843355736, "heading_deg": -145.34785015282955, "used": 6, "err_raw_mm": 71.21346795053947, "err_corr_mm": 12.927500490881915}, {"session_id": "2026-07-09_T57", "r": 0.5614587823436994, "theta": 45.55829234744761, "x_pred": 0.3931240323683145, "z_pred": 0.4008608978752431, "x_actual": 0.3523397875441179, "z_actual": 0.2599052965838368, "heading_deg": 51.83060917394132, "used": 4, "err_raw_mm": 146.73730323711794, "err_corr_mm": 87.86605493281911}, {"session_id": "2026-07-09_T58", "r": 0.4220471792953387, "theta": 54.917047670245374, "x_pred": 0.2425765947617506, "z_pred": 0.3453699715159747, "x_actual": 0.2161005513145778, "z_actual": 0.31334476375095005, "heading_deg": 35.23452869414993, "used": 5, "err_raw_mm": 41.55231412339844, "err_corr_mm": 29.51276811184721}, {"session_id": "2026-07-09_T60", "r": 0.7243425502999717, "theta": -150.74778316621993, "x_pred": -0.631972288526491, "z_pred": -0.35395360813199334, "x_actual": -0.616618538961993, "z_actual": -0.34979814966652345, "heading_deg": -149.4794622260852, "used": 4, "err_raw_mm": 15.906145376789661, "err_corr_mm": 52.367759900577106}, {"session_id": "2026-07-09_T76", "r": 0.542207032893831, "theta": 36.14022475012942, "x_pred": 0.4378734068344255, "z_pred": 0.3197738984137786, "x_actual": 0.4011711035823142, "z_actual": 0.3006299011116783, "heading_deg": 32.466568867962444, "used": 5, "err_raw_mm": 41.39506850716353, "err_corr_mm": 26.530481189846046}, {"session_id": "2026-07-09_T79", "r": 0.6494151924451426, "theta": 32.64412895487449, "x_pred": 0.5468317426928866, "z_pred": 0.35030720426794293, "x_actual": 0.49028478640329354, "z_actual": 0.3606858866618316, "heading_deg": 31.274871693222686, "used": 5, "err_raw_mm": 57.4915238435229, "err_corr_mm": 45.45395330091604}, {"session_id": "2026-07-09_T83", "r": 0.6691265797856165, "theta": 58.371229440576876, "x_pred": 0.35089902964610376, "z_pred": 0.569737001404174, "x_actual": 0.32703193329800506, "z_actual": 0.4963108818223247, "heading_deg": 50.36489982204525, "used": 5, "err_raw_mm": 77.20772840161449, "err_corr_mm": 28.771381403721485}, {"session_id": "2026-07-09_T89", "r": 0.43088428306239124, "theta": 45.79352646222165, "x_pred": 0.30043238515210274, "z_pred": 0.30887157095143847, "x_actual": 0.2375294720342701, "z_actual": 0.30948862322780224, "heading_deg": 66.13692232087232, "used": 5, "err_raw_mm": 62.90593956234472, "err_corr_mm": 71.81300753287184}, {"session_id": "2026-07-09_T90", "r": 0.7285768842044374, "theta": 84.57642059005572, "x_pred": 0.06886364251295096, "z_pred": 0.7253151555957553, "x_actual": 0.055709639133685325, "z_actual": 0.685783997076014, "heading_deg": 76.62504098640191, "used": 4, "err_raw_mm": 41.66221668148069, "err_corr_mm": 26.287665611279035}, {"session_id": "2026-07-09_T95", "r": 0.9373988006696904, "theta": -102.16612090598046, "x_pred": -0.19755380865275032, "z_pred": -0.9163454611573991, "x_actual": -0.17313089796206438, "z_actual": -0.8272294886454954, "heading_deg": -112.59537595984946, "used": 4, "err_raw_mm": 92.40202986594831, "err_corr_mm": 26.808830909799127}, {"session_id": "2026-07-09_T96", "r": 0.8108844439603555, "theta": -96.40270394470446, "x_pred": -0.09042645237895212, "z_pred": -0.8058266799796666, "x_actual": -0.1100426217446131, "z_actual": -0.7527874237885422, "heading_deg": -94.45339373010265, "used": 5, "err_raw_mm": 56.550480085407074, "err_corr_mm": 28.67515522822792}]};</script>
+<script>
+(function(){
+  "use strict";
+  var D = window.__DATA__ || {};
+  var MINUS = "−";
+  function fnum(v,d){ if(v===null||v===undefined||(typeof v==="number"&&!isFinite(v))) return "--";
+    return Number(v).toFixed(d===undefined?1:d).replace("-",MINUS); }
+  function setText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+  function setHTML(id,t){ var e=document.getElementById(id); if(e) e.innerHTML=t; }
+
+  setText("h-n", D.n);
+  setText("c-n", D.n);
+
+  // ---- error stat cards ----
+  if(D.awaiting){
+    document.getElementById("card-raw").classList.add("await");
+    document.getElementById("card-corr").classList.add("await");
+    setText("c-raw","Awaiting ground truth"); setText("c-corr","Awaiting ground truth");
+  } else {
+    document.getElementById("card-raw").classList.add("ok");
+    setHTML("c-raw", fnum(D.raw.mean_mm,1)+"<small> mm</small>");
+    if(D.corrected){
+      document.getElementById("card-corr").classList.add("ok");
+      setHTML("c-corr", fnum(D.corrected.mean_mm,1)+"<small> mm</small>");
+    } else {
+      document.getElementById("card-corr").classList.add("await");
+      setText("c-corr","No model");
+    }
+  }
+
+  // ---- bias model status ----
+  (function(){
+    var b=D.bias_model||{present:false}, host=document.getElementById("bias-body");
+    if(!b.present){ return; }
+    var cls = b.significant ? "bias-pill" : "bias-pill nosig";
+    var label = (b.mode||"none").toUpperCase() + (b.significant ? " · ACTIVE" : " · INACTIVE");
+    host.innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'+
+      '<span class="'+cls+'"><span class="dot"></span>'+label+'</span>'+
+      '<span class="bias-meta">along-track '+fnum(b.along_mean_mm,1)+' mm &nbsp;CI ('+
+      fnum(b.along_ci_mm[0],1)+', '+fnum(b.along_ci_mm[1],1)+')</span></div>'+
+      (b.verdict ? '<p class="hint">'+b.verdict+'</p>' : '');
+  })();
+
+  var pn=(D.power_note||"")+(D.underpowered_null_note?("  "+D.underpowered_null_note):"");
+  setText("power-note", pn);
+
+  /* ============================================================
+     CAMPAIGN SCOPE  (mock visual; fed from D.throws)
+     ============================================================ */
+  function glowDot(x,px,py,c,r){ x.save();x.shadowColor=c;x.shadowBlur=14;
+    x.beginPath();x.arc(px,py,r,0,7);x.fillStyle=c;x.fill();x.restore(); }
+  (function drawCampScope(){
+    var cv=document.getElementById("cscope"); if(!cv) return;
+    var x=cv.getContext("2d"),W=cv.width,H=cv.height,cx=W/2,cy=H/2,RMAX=3.0,sc=(Math.min(W,H)/2-26)/RMAX;
+    x.clearRect(0,0,W,H);
+    // range rings + tick labels
+    x.font="10px ui-monospace,monospace";
+    [0.5,1,1.5,2,2.5,3].forEach(function(rr){ x.beginPath();x.arc(cx,cy,rr*sc,0,7);x.strokeStyle="rgba(94,180,205,.12)";x.lineWidth=1;x.stroke();
+      x.fillStyle="rgba(91,113,128,.85)";x.fillText(rr.toFixed(1),cx+3,cy-rr*sc-3); });
+    // bearing spokes + degree labels (000-330)
+    for(var a=0;a<360;a+=30){ var r=a*Math.PI/180;x.beginPath();x.moveTo(cx,cy);
+      x.lineTo(cx+Math.cos(r)*RMAX*sc,cy-Math.sin(r)*RMAX*sc);x.strokeStyle="rgba(94,180,205,.06)";x.stroke();
+      var lx=cx+Math.cos(r)*(RMAX*sc+13),ly=cy-Math.sin(r)*(RMAX*sc+13);
+      x.fillStyle="rgba(91,113,128,.8)";x.font="9px ui-monospace,monospace";
+      x.fillText((a<100?("0"+a).slice(-3):String(a)),lx-8,ly+3); }
+    // center reticle
+    x.strokeStyle="rgba(70,227,198,.5)";x.lineWidth=1;x.beginPath();
+    x.moveTo(cx-10,cy);x.lineTo(cx-4,cy);x.moveTo(cx+4,cy);x.lineTo(cx+10,cy);
+    x.moveTo(cx,cy-10);x.lineTo(cx,cy-4);x.moveTo(cx,cy+4);x.lineTo(cx,cy+10);x.stroke();
+    // sensor dots in bracket boxes (replaces the play-button-shaped array triangle)
+    var V=(D.geometry&&D.geometry.vertices_xz)||[];
+    V.forEach(function(v,i){ var px=cx+v[0]*sc,py=cy-v[1]*sc;
+      x.strokeStyle="rgba(111,176,255,.5)";x.lineWidth=1;x.strokeRect(px-6,py-6,12,12);
+      x.beginPath();x.arc(px,py,3.5,0,7);x.fillStyle="#6fb0ff";x.fill();
+      x.fillStyle="rgba(111,176,255,.85)";x.font="10px ui-monospace,monospace";x.fillText("S"+(i+1),px+8,py-6); });
+    (D.throws||[]).forEach(function(t){
+      var px=cx+t.x_pred*sc, py=cy-t.z_pred*sc, gx=cx+t.x_actual*sc, gy=cy-t.z_actual*sc;
+      x.beginPath();x.moveTo(px,py);x.lineTo(gx,gy);x.strokeStyle="rgba(255,93,108,.5)";x.lineWidth=1.2;x.stroke();
+      glowDot(x,px,py,"#46e3c6",3.5);
+      x.beginPath();x.arc(gx,gy,3,0,7);x.fillStyle="rgba(255,178,74,.85)";x.fill();
+    });
+    x.beginPath();x.arc(cx,cy,2,0,7);x.fillStyle="rgba(233,245,246,.5)";x.fill();
+  })();
+
+  /* ============================================================
+     ERROR HISTOGRAM  (mock visual; D.throws err_raw_mm)
+     ============================================================ */
+  (function drawHist(){
+    var cv=document.getElementById("chist"); if(!cv) return;
+    var x=cv.getContext("2d"),W=cv.width,H=cv.height,L=30,B=26,T=12,R=12;
+    x.clearRect(0,0,W,H);
+    var errs=(D.throws||[]).map(function(t){return t.err_raw_mm;}).filter(function(v){return v!=null;});
+    if(!errs.length){ x.fillStyle="rgba(81,101,115,.9)";x.font="12px ui-monospace,monospace";x.fillText("Awaiting ground truth.",L,H/2); return; }
+    var mxe=Math.max.apply(null,errs), hi=Math.max(20,Math.ceil(mxe/20)*20), nb=5, bins=new Array(nb).fill(0), bw=hi/nb;
+    errs.forEach(function(e){ bins[Math.min(nb-1,Math.floor(e/bw))]++; });
+    var gw=(W-L-R)/nb, bmax=Math.max.apply(null,bins);
+    x.font="10px ui-monospace,monospace";
+    bins.forEach(function(b,i){ var h=(b/bmax)*(H-T-B), bx=L+i*gw+4;
+      x.fillStyle="rgba(70,227,198,.5)";x.fillRect(bx,H-B-h,gw-8,h);
+      x.fillStyle="rgba(70,227,198,.95)";x.fillRect(bx,H-B-h,gw-8,2);
+      x.fillStyle="rgba(81,101,115,.9)";x.fillText(Math.round(i*bw),bx,H-B+14); });
+    x.strokeStyle="rgba(96,168,196,.2)";x.lineWidth=1;x.beginPath();x.moveTo(L,H-B);x.lineTo(W-R,H-B);x.stroke();
+    x.fillStyle="rgba(81,101,115,.95)";x.fillText("2-D error (mm)",W-110,H-B+14);
+    var mean=errs.reduce(function(a,b){return a+b;},0)/errs.length, mx=L+(mean/hi)*(W-L-R);
+    x.beginPath();x.setLineDash([4,3]);x.moveTo(mx,T);x.lineTo(mx,H-B);x.strokeStyle="rgba(255,178,74,.8)";x.stroke();x.setLineDash([]);
+  })();
+
+  /* ============================================================
+     THROWS TABLE  (mock visual; D.throws)
+     ============================================================ */
+  (function(){
+    var tb=document.getElementById("camprows"), rows=D.throws||[];
+    if(!rows.length){ document.getElementById("throws-empty").hidden=false; return; }
+    rows.forEach(function(t){ var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+t.session_id+"</td><td>"+fnum(t.r,3)+"</td><td>"+fnum(t.theta,1)+"</td>"+
+        "<td>"+(t.used==null?"--":t.used)+"</td>"+
+        "<td style='color:#ff8a94'>"+fnum(t.err_raw_mm,1)+"</td>"+
+        "<td style='color:#46e3c6'>"+(t.err_corr_mm==null?"--":fnum(t.err_corr_mm,1))+"</td>"+
+        "<td>"+fnum(t.heading_deg,1)+"</td>";
+      tb.appendChild(tr); });
+  })();
+})();
+</script>
+</body>
+</html>

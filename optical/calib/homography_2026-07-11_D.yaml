@@ -1,0 +1,43 @@
+calib_id: 2026-07-11_D
+created: '2026-07-11T17:07:27'
+direction: pixel_to_floor
+H:
+- - 0.0038264520655377434
+  - -0.0021653919422906357
+  - -3.127450318802533
+- - -0.0007102061402130407
+  - -0.008835482733506152
+  - 3.7977779792610975
+- - -7.834677040153614e-05
+  - 0.002169752993963328
+  - 1.0
+reproj_rms_px: 10.321212282215097
+check_point_err_m: 0.02535923816202142
+check_point_id: 1
+check_point_ok: false
+fit_ids:
+- 0
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+tol_m: 0.005
+intrinsics: C:\Personal\Polimi\Sem-2\Measurements\Project\Optical Verification\calib\intrinsics_1080p240.yaml
+flags:
+- check_point_fail
+notes: ''
+camera_measured_m:
+  x: -0.5892
+  y: 1.28
+  z: -2.9297
+camera_decomposed_m:
+  x: -0.8802070450353506
+  y: 1.5137198869487485
+  z: -2.963095428880723
+camera_delta_m:
+  dx: 0.2910070450353507
+  dy: -0.23371988694874846
+  dz: 0.033395428880723
+  norm: 0.374733692754828

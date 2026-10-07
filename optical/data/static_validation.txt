@@ -1,0 +1,27 @@
+STATIC-POINT VALIDATION (Optical.md section 8)
+================================================================
+  id   surv_x   surv_z   meas_x   meas_z  err_mm  sig_mm   det
+----------------------------------------------------------------
+Static-1   -0.511   -0.570   -0.544   -0.634    72.3    26.3  53/60
+Static-2    0.573   -0.188    0.461   -0.290   152.1  1472.5  60/60
+Static-3    0.342    0.375    0.328    0.369    14.9  1271.4  59/60
+Static-4   -0.405    0.324   -0.440    0.302    41.2  1174.7  60/60
+Static-5   -0.822    0.221   -0.831    0.229    11.5   694.6  59/60
+Static-6   -0.008   -0.741   -0.022   -0.742    13.9    16.8  56/60
+Static-7   -0.003    0.944   -0.034    1.031    92.2    32.8  59/60
+Static-8    0.385   -0.742    0.383   -0.750     8.9   620.6  57/60
+Static-9    0.130    0.089    0.103    0.083    28.2    23.2  60/60
+Static-10   -0.118   -0.350   -0.156   -0.357    39.0    19.1  56/60
+----------------------------------------------------------------
+n points        : 10 (>= 8 OK)
+RMS disagreement: 64.4 mm
+max error       : 152.1 mm
+gate            : <= 15.0 mm
+VERDICT         : NO-GO
+
+budget-vs-measured (mm): per-point propagated sigma above should be
+commensurate with the point's error; a budget far below the spread
+means an unmodelled error source (section 7).
+  mean propagated sigma : 535.2 mm
+  measured RMS spread   : 64.4 mm
+session stability : UNCHECKED - check point marker 1 not detected in the start & end frame(s) - drift re-check skipped

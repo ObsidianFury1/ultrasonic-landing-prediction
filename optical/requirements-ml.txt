@@ -1,0 +1,22 @@
+# requirements-ml.txt — OPTIONAL, GATED ML dependency (Optical.md §0.1, §10 Phase 6a/6b).
+#
+# Install ONLY if the Phase 6a/6b detector-comparison study is executed:
+#     .\venv\Scripts\python.exe -m pip install -r requirements-ml.txt
+#
+# Pulls in PyTorch (CPU build) + torchvision. Core Phases 0-5 NEVER import from this;
+# `optical/detect_ml.py` is the single module that touches ultralytics, and it guards the
+# import so the core test suite still passes with this file uninstalled (import-guard test).
+#
+# Model choice (WO-OPT-2 Decision E2): the smallest detection model available in the pinned
+# ultralytics release's model zoo is used for zero-shot detection — YOLO11-nano
+# (`yolo11n.pt`, ~2.6 M params, ~5.4 MB weights, COCO-pretrained). COCO includes a
+# "sports ball" class (id 32), so the ball is detected with NO training and NO labelling.
+# The weights auto-download from the ultralytics assets release on first instantiation and
+# are cached under `models/`; `models/yolo11n.pt` is referenced in config.yaml (ml_detector.model).
+# `models/` is a REGENERABLE artifact directory (like data/comparison/), distinct from the
+# sacred, never-overwritten data/optical/ tree (WO-OPT-3 Stage 5 repo-hygiene note).
+#
+# Pinned to the exact version installed and measured in WO-OPT-2 Stage 1 (2026-07-06):
+#   ultralytics 8.4.89  ->  pulled torch 2.12.1+cpu, torchvision 0.27.1+cpu
+#   venv footprint delta on install: ~816 MB (CPU-only torch).
+ultralytics==8.4.89

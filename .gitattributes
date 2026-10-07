@@ -1,0 +1,13 @@
+# Normalise line endings for source, but never touch raw hardware captures or binaries.
+* text=auto
+
+# Raw serial captures are sacred byte-for-byte (the firmware emits CRLF rows).
+*.log -text
+
+# Binaries
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.xlsx binary
+*.docx binary

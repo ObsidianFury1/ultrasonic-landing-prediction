@@ -1,0 +1,296 @@
+# config.yaml — Optical Ground-Truth Landing Module
+#
+# Single source of physical/tuning truth for this STANDALONE project.
+# Shared constants (array geometry, ball radius) are DELIBERATELY DUPLICATED from the
+# main ultrasonic project (Optical.md/CLAUDE.md §12: "duplication over coupling"), NOT
+# imported. Each duplicated value names its source section in the MAIN project's
+# CLAUDE.md so drift can be audited by hand.
+
+# ---------------------------------------------------------------------------
+# Array geometry — DUPLICATED from the main project (see comments per field).
+# Frame contract (Optical.md §2 / main CLAUDE.md §0.1): origin = triangle centroid on
+# the floor; +x toward the S1 floor mark (theta = 0 axis); +y up; +z completes the
+# right-handed set (theta measured CCW from +x toward +z, viewed from above).
+# ---------------------------------------------------------------------------
+array:
+  # Measured HORIZONTAL vertex coordinates [m] as (x, z) in the frame above.
+  # Source: main CLAUDE.md §2 (array.S?_xz). IDEAL symmetric values below; replace
+  # with the surveyed values used by the main array once it is built.
+  S1_xz: [0.5774, 0.0]     # main CLAUDE.md §2 array.S1_xz
+  S2_xz: [-0.2887, 0.5]    # main CLAUDE.md §2 array.S2_xz
+  S3_xz: [-0.2887, -0.5]   # main CLAUDE.md §2 array.S3_xz
+  centroid_xz: [0.0, 0.0]  # array frame origin by definition (Optical.md §2)
+  # Sensor acoustic-centre height above floor [m]. Source: main CLAUDE.md §2
+  # array.S_height_m. Informational here (optical works in the floor plane); kept for
+  # cross-reference and any future 3D work.
+  S_height_m: 0.045
+
+ball:
+  # Basketball radius [m]. Source: Optical.md §2 (== main CLAUDE.md §5.3 ball.radius_m).
+  # Used by the analytic parallax correction (Optical.md §5.4): the tracked centroid
+  # sits ~r_ball above the floor at contact.
+  #
+  # [AMENDED v1.5 / WO-OPT-4 Stage 1 — Decision D17; was: 0.0335 (tennis ball)]
+  # PROVENANCE: MEASURED 2026-07-09 — circumference C = 0.750 m by tape (+/-2 mm),
+  # r = C/(2*pi) = 0.1194 m; mass 0.620 kg; size-7 ball. Recorded in the MAIN project's
+  # D6 decision register. Duplicated here per Optical.md §12 ("duplication over
+  # coupling") — this module does NOT import it. If the main project's D6 value ever
+  # changes, this line must be changed BY HAND; nothing detects the drift automatically.
+  #
+  # Consequences (exact ratios, used throughout WO-OPT-4): radius ratio vs the old
+  # tennis value = 0.1194/0.0335 = x3.56; rendered pixel AREA ratio = 3.56^2 ~= x12.7
+  # (drives the detect.max_area_px widening below); the Optical.md §5.4 parallax
+  # centroid-height correction grows the same x3.56 (Decision D20).
+  radius_m: 0.1194
+
+# ---------------------------------------------------------------------------
+# Floor markers (Optical.md §3.3) — surveyed in ARRAY coordinates (x, z) [m].
+# PLACEHOLDERS: populate at commissioning (checklist C4). Every marker carries a
+# survey sigma; at least ONE marker is held out of the homography fit for integrity
+# checking (Optical.md §3.3, §5.1). ArUco dictionary: DICT_4X4_50.
+# ---------------------------------------------------------------------------
+markers:
+  aruco_dict: "DICT_4X4_50"
+  # Expected tape survey sigma, ~2-3 mm (Optical.md §3.3 / §7 item 1). {value, measured} shape
+  # (WO-OPT-3 Stage 3 / Decision D11) matching the four `uncertainty:` components: while
+  # `measured: false` it is consumed AND flagged `unmeasured_uncertainty_components` (§5.6) with
+  # the naming warning + notes echo. Value 0.0025 is UNCHANGED — no budget number moves. Flip
+  # `measured: true` only when a real tape-survey sigma is recorded at checklist C4.
+  survey_sigma_m: {value: 0.0025, measured: true}  # [C4] 2026-07-11: operator adopted the
+                               # default 2.5mm placeholder as the recorded survey sigma (all 8
+                               # marker trilateration residuals in trilateration_log.csv fell
+                               # in the 0.2-6.0mm range, consistent with this value).
+  # List of surveyed markers. `id` = ArUco id (or a label for pod/centroid marks);
+  # `xz` = [x, z] in array metres; `held_out` = exclude from the H fit (integrity check).
+  # [C4] 2026-07-11: all 8 markers surveyed via trilateration_survey.py (tape distances to
+  # centroid/S1/S2/S3, least-squares solve); see trilateration_log.csv for the full record
+  # (timestamps, chosen references, ls_residual_m, cond_number). ID_1 designated held-out.
+  # [C4 REVISION 2026-07-11] ids 5 and 6 physically MOVED (re-laid + re-surveyed) to improve
+  # the C5 fit; their positions below are the NEW (post-move) surveyed values, per the latest
+  # trilateration_log.csv rows for ID_5/ID_6 (timestamps 16:47:56 / 16:48:41). ids 0,2,3,4,7
+  # unchanged.
+  # [C4 REVISION 2 2026-07-11] id 1 (the held-out check point) RE-SURVEYED — its original
+  # survey had the worst residual of all 8 markers (5.98mm) and was the prime suspect for the
+  # [C5] check_point_fail investigated below. New position from trilateration_log.csv row
+  # "ID_02_RESRUVEY" (17:04:15) -- a labelling slip, confirmed with the operator to be marker
+  # id 1, not id 2 (solved position matches id 1's original location, not id 2's).
+  fit_points:
+    - {id: 0, xz: [-0.5563, -0.0398], held_out: false}   # residual 2.37 mm
+    - {id: 1, xz: [0.3333, 0.6580], held_out: true}       # RE-SURVEYED; residual 2.01 mm (was
+                                                            # 5.98mm at [0.3288,0.6495]) — HELD-OUT
+    - {id: 2, xz: [-0.0809, 0.2345], held_out: false}    # residual 2.10 mm
+    - {id: 3, xz: [0.2848, -0.4382], held_out: false}    # residual 2.97 mm
+    - {id: 4, xz: [-0.0268, -1.5651], held_out: false}   # residual 3.82 mm
+    - {id: 5, xz: [0.8503, 0.1164], held_out: false}     # MOVED; residual 4.90 mm
+    - {id: 6, xz: [-0.5125, 0.8214], held_out: false}    # MOVED; residual 1.43 mm
+    - {id: 7, xz: [-1.3778, -0.0720], held_out: false}   # residual 0.23 mm
+  # Convenience alias for pod/centroid manual-click marks (Optical.md §3.3); array
+  # coordinates duplicated from `array` above for clicking convenience.
+  reference_marks:
+    centroid: [0.0, 0.0]
+    S1: [0.5774, 0.0]
+    S2: [-0.2887, 0.5]
+    S3: [-0.2887, -0.5]
+
+# ---------------------------------------------------------------------------
+# Tolerances / gates (Optical.md §14 Phase 0, §5.1, §8).
+# ---------------------------------------------------------------------------
+tolerances:
+  check_point_tol_m: 0.005     # §5.1 homography-drift / held-out check-point tolerance
+  rms_gate_m: 0.015            # §8 commissioning GO/NO-GO: RMS disagreement <= 1.5 cm
+
+# ---------------------------------------------------------------------------
+# HSV ball-detection band (Optical.md §5.2) — PLACEHOLDERS, tuned at commissioning
+# against real footage WITH shadows. Basketball orange. OpenCV HSV ranges:
+# H 0-179, S 0-255, V 0-255.
+# [AMENDED v1.5 / WO-OPT-4 Stage 1 — Decision D18; was: tennis yellow-green,
+#  hsv_lower [25,60,60] / hsv_upper [45,255,255]]
+# ---------------------------------------------------------------------------
+detect:
+  # [C6 MEASURED, 2026-07-11] Retuned from real footage (Survey-1/2/3.MOV, static basketball
+  # at 3 surveyed positions) — the WO-OPT-1-era placeholder band [5,20] found ZERO detections
+  # on real footage: the real ball's hue turned out to sit almost entirely in [0,10) (~85% of
+  # bright pixels) with the remainder in [170,180) (~15%) — a wraparound case (OpenCV hue is
+  # circular, 0 and 179 are both "red"), not the single contiguous orange band the placeholder
+  # assumed. This band is a genuine two-range union (hsv_lower2/upper2 below); see
+  # `optical/detect.py HsvDetector` (mask() now ORs both ranges) and
+  # `simulator/render.py basketball_bgr()` (wraparound-aware centre calc) for the code that
+  # makes this representable. S/V floor kept at 60 (unchanged rationale from the prior
+  # placeholder: shadow/low-contrast robustness, §6 `low_contrast` scenario desaturates to
+  # S~=116; floor stays far below both that and the achromatic floor/shadow backgrounds).
+  hsv_lower: [0, 60, 60]        # MEASURED lower [H, S, V] — red-orange, "low" side of the wrap
+  hsv_upper: [10, 255, 255]     # MEASURED upper [H, S, V]
+  hsv_lower2: [170, 60, 60]     # MEASURED lower [H, S, V] — "high" side of the wrap (same hue)
+  hsv_upper2: [179, 255, 255]   # MEASURED upper [H, S, V]
+  # FINALISED WO-OPT-4 Stage 4 from MEASURED rendered synthetic area (Decision D19),
+  # replacing the Stage-1 x13 provisional. Measurement: the basketball's largest-connected-
+  # -component mask area was measured across ALL §6 scenarios (nominal/shadowed/low_contrast/
+  # blurred/grazing/bounce, 1280x720) AND the 8 static-validation points. Global range:
+  #   min 2632 px^2 (grazing, far/oblique)  ...  max 8471 px^2 (nearest static point).
+  # Upper bound = 8471 * (tennis margin) : the retired tennis band's upper (20000) was 28.9x
+  # its own measured global max (692 px^2); preserving that SAME relative margin gives
+  # 8471 * 28.9 ~= 245000. The margin is inherited, not newly loosened — the tennis band was
+  # never a limiting factor in any test.
+  # [C6 CONFIRMED 2026-07-11] Real-footage areas at the 3 static survey positions (retuned
+  # HSV band): 7199 / 11161 / 15017 px^2 mean (min-max within ~1% of each, essentially
+  # noise-free) — comfortably inside [30, 245000] on both ends. Band kept AS-IS; the existing
+  # margin already covers real measured values with wide headroom (closer/blurred throws
+  # could plausibly exceed these 3 static points, which is exactly what the margin is for).
+  min_area_px: 1000            # [C7 RETUNED 2026-07-11] was 30 (tennis-era, far too permissive
+                               # for real footage). C7 field finding: background specks of
+                               # 40-77 px^2 (a stray reddish artifact elsewhere in frame) passed
+                               # the old floor and were chosen over the real ball once its
+                               # circularity was (wrongly, see below) computed too low to
+                               # qualify. 1000 sits with wide margin below every real measured
+                               # ball area this session (7199-15017 px^2, C6; 13469 px^2, C7
+                               # Static-1) and far above the observed noise specks.
+  max_area_px: 245000          # high end = 8471 measured max x 28.9 (inherited tennis margin)
+  min_circularity: 0.6         # [C7 root cause + fix, 2026-07-11] `HsvDetector.detect()` now
+                               # computes circularity from the blob's CONVEX HULL, not the raw
+                               # contour (optical/detect.py). Root cause found via C7 static-
+                               # point validation: the real ball's dark seam lines + a shadowed
+                               # underside carve concave notches into the mask, inflating the
+                               # RAW contour perimeter enough to crater circularity as low as
+                               # 0.44 on a genuinely well-detected, correctly-sized ball blob
+                               # (13469 px^2) -- below this very threshold, causing it to be
+                               # REJECTED in favour of a tiny spurious speck. The SAME blob's
+                               # convex-hull circularity measured 0.98. Old C6 comment
+                               # ("real-footage circularity 0.666-0.759") described the RAW
+                               # metric on 3 clips that happened not to trigger the notch
+                               # problem; it does not apply to the new hull-based metric and is
+                               # superseded. 0.6 kept UNCHANGED as a conservative floor under the
+                               # new (typically ~0.9+ for genuine balls) hull metric.
+
+# ---------------------------------------------------------------------------
+# Optional ML detector (Optical.md §10 Phase 6a/6b, Zone 2 ONLY) — ADDITIVE block
+# (WO-OPT-2 Stage 1). Consumed ONLY by optical/detect_ml.py, which is imported ONLY by
+# the Phase 6a comparison harness / its tests — never by the core measurement chain.
+# Requires `requirements-ml.txt` installed; absent that, instantiating the detector
+# raises a clear MLDetectorUnavailable, and this block is simply ignored by core code.
+# ---------------------------------------------------------------------------
+ml_detector:
+  model: "models/yolo11n.pt"   # smallest detection model in the pinned ultralytics 8.4.89
+                               # zoo (YOLO11-nano, ~2.6 M params, ~5.4 MB); COCO-pretrained,
+                               # zero-shot via the "sports ball" class. See requirements-ml.txt.
+  sports_ball_class: 32        # COCO class id for "sports ball" (verified from model.names)
+  conf: 0.25                   # detection confidence threshold. 0.25 = the ultralytics-typical
+                               # default, a SANE real-footage starting point (Phase 6b C6 tunes
+                               # it against real clips). NOTE (measured, Stage 1): the synthetic
+                               # ball's zero-shot confidence spans ~0.05-0.72 and dips near
+                               # contact, so the Phase 6a synthetic sweep (§10) explores lower
+                               # cutoffs; this is the ML analogue of the HSV band knob.
+  imgsz: 640                   # inference size. 640 = YOLO11 training size; measured to give
+                               # markedly higher confidence on our 1280x720 frames than 1280.
+
+# ---------------------------------------------------------------------------
+# Tracking / descent segmentation (Optical.md §5.3) — PLACEHOLDERS.
+# ---------------------------------------------------------------------------
+track:
+  max_jump_px: 150             # PLACEHOLDER nearest-neighbour association gate
+  descent_window_frames: 10    # §5.3 default 8-12; last N frames before contact reversal
+  min_rise: 2                  # §5.3 confirmed-reversal rule (WO-OPT-1 Stage 4.4): a
+                               # reversal needs this many consecutive non-increasing
+                               # image-v steps (net strict decrease). 2 = a real rebound
+                               # always satisfies it; single-frame noise cannot.
+
+# ---------------------------------------------------------------------------
+# Uncertainty budget inputs (Optical.md §7) — each is a {value, measured} pair.
+# `measured: false` marks a PLACEHOLDER awaiting a commissioning measurement. While
+# ANY consumed component is unmeasured, every throw's optical_gt.json carries the
+# `unmeasured_uncertainty_components` flag (§5.6) and process_clip prints a UserWarning
+# naming the offending components. Flip `measured: true` ONLY after the real number is
+# recorded. These are read with NO silent fallback — a missing block/key is a hard error.
+# (Added v1.1 / WO-OPT-1 Stage 1, per AUDIT_REPORT_PHASES_0-4.md finding M1.)
+# ---------------------------------------------------------------------------
+uncertainty:
+  pixel_sigma_px:              # §7 item 3 — detector centroid scatter [px].
+    value: 0.25                # [C6 MEASURED 2026-07-11] localisation_scatter() on the 3
+                               # real static-ball survey clips (Survey-1/2/3.MOV, retuned HSV
+                               # band): sigma_px = 0.224 / 0.072 / 0.151 px (60/60 detected at
+                               # each position). Adopted value = the conservative max
+                               # (0.224 px), rounded up to 0.25 px for margin.
+    measured: true
+  sigma_h_m:                   # §5.4/§7 item 4 — sigma of contact height h (= r_ball; ball
+    value: 0.00297              # compression surrogate) [m].
+    measured: true              # [C6 MEASURED-BY-MODEL 2026-07-11] The spec defines NO
+                               # prescribed measurement procedure for this component (unlike
+                               # the other four); operator chose method (b) from the C6
+                               # checklist note: a documented literature figure, here combined
+                               # with this project's OWN real ultrasonic velocity data via a
+                               # standard physics model (NOT a direct high-speed-video
+                               # measurement of the ball's own deformation).
+                               # METHOD: model ball-floor contact as a half-cycle simple
+                               # harmonic spring (standard simplified treatment for elastic
+                               # ball impacts): contact duration t_c gives effective stiffness
+                               # k = m(pi/t_c)^2; max compression at full KE->PE conversion is
+                               # x_max = v*t_c/pi. Literature: basketball floor-contact duration
+                               # ~25 ms (up to ~34 ms max) - WebSearch summary of NBA-testing/
+                               # academic bounce-height studies; ATTEMPTED to read the two most
+                               # relevant primary sources directly (an ASEE conference paper on
+                               # NBA basketball bounce dynamics; a basketball-physics review) but
+                               # BOTH returned HTTP 403 — so this figure is from a search-result
+                               # synthesis, not a directly-verified primary document. Flagged
+                               # here rather than silently upgraded to "primary-verified"; does
+                               # NOT retire the separate §5.5/D21 "contact duration unverified"
+                               # item, which explicitly requires a primary source or this
+                               # session's own measurement of THAT quantity specifically.
+                               # DATA: m = 0.620 kg (config `ball.mass_kg`... actually main D6
+                               # register, duplicated per sec 12); impact speed v from THIS
+                               # project's own main-pipeline ultrasonic sessions
+                               # (Code/data/sessions/*/session.json `prediction.raw.v_h_m_s`
+                               # + trajectory.csv vertical velocity via finite difference of the
+                               # last 2 samples), n=34 sessions, mean v_total = 2.070 m/s,
+                               # std = 0.373 m/s. RESULT: mean compression depth 16.47 mm
+                               # (13.8% of r_ball — informational, not itself a config value);
+                               # STANDARD DEVIATION of compression across the 34 sessions'
+                               # velocity spread = 2.97 mm = 0.00297 m, adopted as sigma_h_m.
+                               # Approximation caveats: SHM/half-sinusoid contact is an idealised
+                               # linear-spring model of a pressurised, viscoelastic shell; v_total
+                               # combines horizontal + a noisy finite-difference vertical
+                               # velocity estimate (not a direct high-speed measurement of
+                               # contact-instant normal velocity). Treat as an engineering
+                               # estimate, not a laboratory measurement.
+  sigma_C_m:                   # §7 item 4 — camera-centre position sigma [m] as (x, y, z),
+    value: [0.0, 0.0, 0.0]     # from repeated C5 calibrations + tape. PLACEHOLDER — currently
+    measured: false            # UNMEASURED (was silently zero before this block existed).
+  rolling_shutter_m:           # §7 item 5 — rolling-shutter skew bound [m], from the §3.2
+    value: 0.0                 # falling-ball/plumb-line film. "Do not assume it away" (§7).
+    measured: false            # PLACEHOLDER.
+
+# ---------------------------------------------------------------------------
+# Capture (Optical.md §3.1, §3.2, §4) — device SWITCHED at [C0], 2026-07-11.
+# ---------------------------------------------------------------------------
+capture:
+  device: "iPhone 15 Pro Max"  # [C0] SWITCHED 2026-07-11 from the OnePlus 12R baseline (§3.1).
+                               # Criterion 1 (genuine, non-interpolated capture): PASS, per
+                               # operator inspection/spec. Only real high-fps slow-mo mode is
+                               # 1080p@240 — no 720p/480-equivalent on this device, so the §4
+                               # two-mode RMS comparison collapses to this single mode.
+                               # Exposure/shutter lock: available (lock it per §3.1).
+                               # Per §3.1, switching device requires redoing C1 (frame-rate
+                               # verification) and C2 (intrinsics) for THIS device — nothing
+                               # else in the pipeline changes; it is device-agnostic by design.
+  default_mode: "1080p240"     # sole real candidate mode for the iPhone 15 Pro Max (was
+                               # 720p480 under the OnePlus baseline, now unreachable — see
+                               # `modes` below).
+  fps_tol_pct: 0.5             # §3.2 fps_mismatch tolerance [%] — pairwise disagreement
+                               # among nominal / container / --fps-measured beyond this
+                               # flags `fps_mismatch`. PLACEHOLDER (WO-OPT-1 Stage 2 /
+                               # audit M2): tighten once C1 characterises the phone's
+                               # actual rate stability.
+  fps_refuse_pct: 20           # §3.2 HARD-REFUSE band [%] (WO-OPT-3 Stage 2 / audit Major 4.2,
+                               # Decision D9). If the rate USED for timing disagrees with the
+                               # nominal rate by more than this, resolve_fps raises
+                               # OpticalConfigError and writes NOTHING — the backstop for a
+                               # playback-rate container (e.g. a 480 fps capture stored as
+                               # 30 fps) with --fps-measured forgotten, so a ~16x-wrong
+                               # temporal base can never produce a plausible-looking landing.
+                               # Between fps_tol_pct and this, the D2 flag-and-continue
+                               # (`fps_mismatch`) behaviour is unchanged.
+  modes:
+    "720p480": {fps_nominal: 480, resolution: [1280, 720]}  # OnePlus-only; NOT available on
+                               # the iPhone 15 Pro Max — left defined (harmless, unreferenced)
+                               # rather than deleted, in case of a future device switch back.
+    "1080p240": {fps_nominal: 240, resolution: [1920, 1080]}  # the iPhone's mode; fps_nominal
+                               # is the datasheet value only — C1's stopwatch-verified rate is
+                               # what must be passed via --fps-measured, per §8.

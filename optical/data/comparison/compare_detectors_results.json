@@ -1,0 +1,583 @@
+{
+  "generated": "2026-07-10T21:35:00",
+  "stage": "WO-OPT-2 Stage 2 (Phase 6a) \u2014 SYNTHETIC-ONLY draft",
+  "ml_available": true,
+  "ml_unavailable_reason": null,
+  "config": {
+    "ml_detector": {
+      "model": "models/yolo11n.pt",
+      "sports_ball_class": 32,
+      "conf": 0.25,
+      "imgsz": 640
+    },
+    "hsv_band": {
+      "lower": [
+        5,
+        60,
+        60
+      ],
+      "upper": [
+        20,
+        255,
+        255
+      ]
+    }
+  },
+  "environment": {
+    "python": "3.14.3",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "scenarios": {
+    "nominal": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.014702017944005597,
+          "bias_v_px": -0.014752758762681298,
+          "sigma_u_px": 0.03515461495696513,
+          "sigma_v_px": 0.03400774440215658,
+          "sigma_px": 0.034585933788860525,
+          "rms_px": 0.052659310632969955,
+          "landing": {
+            "landing_error_mm": 3.1726587318884087,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "blurred": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": 0.05131657298906905,
+          "bias_v_px": -0.11418547681098137,
+          "sigma_u_px": 0.05362687869354809,
+          "sigma_v_px": 0.1269351145310345,
+          "sigma_px": 0.09743809680874152,
+          "rms_px": 0.18503544395959898,
+          "landing": {
+            "landing_error_mm": 3.554554235274972,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "shadowed": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.015818028326366907,
+          "bias_v_px": -0.007424526929477477,
+          "sigma_u_px": 0.037859610764520726,
+          "sigma_v_px": 0.04792792187381229,
+          "sigma_px": 0.043188168648272574,
+          "rms_px": 0.06287186070741672,
+          "landing": {
+            "landing_error_mm": 3.0759794916279026,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "low_contrast": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": 0.005114301915639569,
+          "bias_v_px": -0.002470127688630757,
+          "sigma_u_px": 0.03370339153698158,
+          "sigma_v_px": 0.029623016819822885,
+          "sigma_px": 0.03172886482843809,
+          "rms_px": 0.04473204882413714,
+          "landing": {
+            "landing_error_mm": 4.038860602616906,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "grazing": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.004616801005752475,
+          "bias_v_px": -0.004691935865748241,
+          "sigma_u_px": 0.031895124470194824,
+          "sigma_v_px": 0.0379571332760906,
+          "sigma_px": 0.035057402438772645,
+          "rms_px": 0.049464622397703606,
+          "landing": {
+            "landing_error_mm": 15.652769095644423,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 6,
+          "detection_rate": 0.13333333333333333,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": 0.9260393663920089,
+          "bias_v_px": 0.6361159729442155,
+          "sigma_u_px": 0.3965856594961433,
+          "sigma_v_px": 0.3129116315808514,
+          "sigma_px": 0.3572071349347472,
+          "rms_px": 1.2144356719163694,
+          "landing": {
+            "landing_error_mm": 368.81368070259873,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "low_frame_count",
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 4.19014396998072
+          }
+        }
+      }
+    },
+    "survey_perturbed": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 45,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.014702017944005597,
+          "bias_v_px": -0.014752758762681298,
+          "sigma_u_px": 0.03515461495696513,
+          "sigma_v_px": 0.03400774440215658,
+          "sigma_px": 0.034585933788860525,
+          "rms_px": 0.052659310632969955,
+          "landing": {
+            "landing_error_mm": 3.1726587318884087,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "no_ball": {
+      "n_frames": 68,
+      "has_ball": false,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 0,
+          "n_detected": 0,
+          "detection_rate": null,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "scenario has no contact (no-ball)"
+          }
+        },
+        "ml": {
+          "n_ball_frames": 0,
+          "n_detected": 0,
+          "detection_rate": null,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "scenario has no contact (no-ball)"
+          }
+        }
+      }
+    },
+    "with_dropouts": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 45,
+          "n_detected": 42,
+          "detection_rate": 0.9333333333333333,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.017749016250661498,
+          "bias_v_px": -0.014673777211767526,
+          "sigma_u_px": 0.03254442174658749,
+          "sigma_v_px": 0.035193012429832325,
+          "sigma_px": 0.03389459773109934,
+          "rms_px": 0.05266239626849429,
+          "landing": {
+            "landing_error_mm": 3.268676006834025,
+            "reason": null,
+            "end_reason": "track_end",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_bracket"
+            ],
+            "t_star_err_frame": 0.1901439699807298
+          }
+        },
+        "ml": {
+          "n_ball_frames": 45,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "bounce": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 68,
+          "n_detected": 68,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.024519583029797665,
+          "bias_v_px": -0.006737687465131781,
+          "sigma_u_px": 0.034145283399440396,
+          "sigma_v_px": 0.03815506810719187,
+          "sigma_px": 0.03620572883324233,
+          "rms_px": 0.056830990067692155,
+          "landing": {
+            "landing_error_mm": 0.16692569271335833,
+            "reason": null,
+            "end_reason": "reversal",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_kink"
+            ],
+            "t_star_err_frame": 0.04081821383644664
+          }
+        },
+        "ml": {
+          "n_ball_frames": 68,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    },
+    "bounce_oblique": {
+      "n_frames": 68,
+      "has_ball": true,
+      "detectors": {
+        "hsv": {
+          "n_ball_frames": 68,
+          "n_detected": 68,
+          "detection_rate": 1.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": -0.01041574416691179,
+          "bias_v_px": -0.019988189644254483,
+          "sigma_u_px": 0.038884725361423435,
+          "sigma_v_px": 0.040685112648622096,
+          "sigma_px": 0.039795101819598326,
+          "rms_px": 0.060239005341256945,
+          "landing": {
+            "landing_error_mm": 0.5724500004872907,
+            "reason": null,
+            "end_reason": "reversal",
+            "method": "analytic_centroid",
+            "contact_flags": [
+              "contact_time_kink"
+            ],
+            "t_star_err_frame": 0.011260717549568611
+          }
+        },
+        "ml": {
+          "n_ball_frames": 68,
+          "n_detected": 0,
+          "detection_rate": 0.0,
+          "n_false_positive": 0,
+          "false_positive_frames": [],
+          "bias_u_px": null,
+          "bias_v_px": null,
+          "sigma_u_px": null,
+          "sigma_v_px": null,
+          "sigma_px": null,
+          "rms_px": null,
+          "landing": {
+            "landing_error_mm": null,
+            "reason": "no prediction: no ball track: only 0 valid detections - cannot segment a descent (no landing is reported)"
+          }
+        }
+      }
+    }
+  },
+  "timing": {
+    "hsv": {
+      "n_frames": 204,
+      "median_ms": 2.117600008205045,
+      "p25_ms": 1.986025003134273,
+      "p75_ms": 2.349525002500741,
+      "iqr_ms": 0.3634999993664678
+    },
+    "ml": {
+      "n_frames": 204,
+      "median_ms": 37.04329999163747,
+      "p25_ms": 34.66627499437891,
+      "p75_ms": 39.02132500297739,
+      "iqr_ms": 4.355050008598482
+    }
+  },
+  "confidence_sweep": {
+    "grid": [
+      0.01,
+      0.02,
+      0.05,
+      0.1,
+      0.25,
+      0.5
+    ],
+    "scenarios": [
+      "nominal",
+      "shadowed",
+      "low_contrast"
+    ],
+    "subsample": 4,
+    "points": [
+      {
+        "conf": 0.01,
+        "mean_detection_rate": 0.05555555555555555,
+        "mean_sigma_px": 0.1411308297785747
+      },
+      {
+        "conf": 0.02,
+        "mean_detection_rate": 0.027777777777777776,
+        "mean_sigma_px": null
+      },
+      {
+        "conf": 0.05,
+        "mean_detection_rate": 0.0,
+        "mean_sigma_px": null
+      },
+      {
+        "conf": 0.1,
+        "mean_detection_rate": 0.0,
+        "mean_sigma_px": null
+      },
+      {
+        "conf": 0.25,
+        "mean_detection_rate": 0.0,
+        "mean_sigma_px": null
+      },
+      {
+        "conf": 0.5,
+        "mean_detection_rate": 0.0,
+        "mean_sigma_px": null
+      }
+    ],
+    "hsv_reference": {
+      "band": {
+        "hsv_lower": [
+          5,
+          60,
+          60
+        ],
+        "hsv_upper": [
+          20,
+          255,
+          255
+        ]
+      },
+      "mean_detection_rate": 1.0,
+      "mean_sigma_px": 0.03898857414981155
+    }
+  },
+  "negative_control": {
+    "hsv": {
+      "n_false_positive": 0,
+      "DEFECT": false
+    },
+    "ml": {
+      "n_false_positive": 0,
+      "DEFECT": false
+    }
+  }
+}

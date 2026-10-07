@@ -1,0 +1,40 @@
+# ---- Python environments & caches (always rebuilt locally) ----
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- Tooling / editor / OS noise ----
+.claude/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.tmp
+.session-*.tmp
+*.lock
+
+# ---- Backups and archives (never commit; we have git now) ----
+*.zip
+*_backup*/
+*_pre-WO-*/
+
+# ---- Large media: raw phone footage and calibration photos ----
+# Host these outside git (GitHub Release / Drive / Zenodo) and link them from the README.
+*.MOV
+*.mov
+*.mp4
+*.avi
+*.mkv
+optical/calibration-frames/
+optical/calib/raw/
+
+# ---- Regenerable ML weights (auto-downloaded by ultralytics on first use) ----
+optical/models/
+*.pt
+
+# ---- Large slide decks (publish as a GitHub Release asset instead) ----
+*.pptx

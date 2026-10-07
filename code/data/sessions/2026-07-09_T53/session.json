@@ -1,0 +1,93 @@
+{
+  "session_id": "2026-07-09_T53",
+  "created": "2026-07-09T20:29:39",
+  "temperature_c": 33.0,
+  "fw_header": "# fw=05,slot_ms=18,timeout_us=12500",
+  "gate_summary": {
+    "n_triplets_total": 135,
+    "n_triplets_valid": 5,
+    "n_triplets_in_throw": 5,
+    "n_triplets_used": 5,
+    "throw_start": 127,
+    "throw_end": 131,
+    "malformed_lines": 0,
+    "dropped_readings": 0,
+    "background_enabled": [
+      false,
+      false,
+      false
+    ],
+    "sensor_offset_applied": true,
+    "sensor_offset_m": [
+      -0.0255,
+      -0.0225,
+      -0.0129
+    ],
+    "fw_header": "# fw=05,slot_ms=18,timeout_us=12500"
+  },
+  "processing_warnings": [],
+  "prediction": {
+    "raw": {
+      "x_m": 0.26789474689087334,
+      "z_m": 0.6357127571899577,
+      "r_m": 0.6898538287679377,
+      "theta_deg": 67.14902968616062,
+      "sigma_r_m": 0.0608122185769336,
+      "sigma_theta_deg": 3.2027046313959557,
+      "heading_deg": 69.94451279962674,
+      "v_h_m_s": 1.535303263772188,
+      "n_points": 5,
+      "dof": 2,
+      "cov_xz_m2": [
+        [
+          0.0021448835438638916,
+          0.001107885484425402
+        ],
+        [
+          0.001107885484425402,
+          0.003040213967051877
+        ]
+      ]
+    },
+    "corrected": null,
+    "model_id": null
+  },
+  "small_sample_caveat": "R7 small-sample caveat: the landing covariance rests on only 2 degree(s) of freedom (5 fitted points, 3 parabola parameters), so the uncertainty ellipse is itself highly uncertain \u2014 treat (sigma_r, sigma_theta) as indicative, not as a calibrated confidence region.",
+  "ground_truth": {
+    "x_m": 0.3002182696865696,
+    "z_m": 0.4855668126026145,
+    "r_m": 0.5708818958021531,
+    "theta_deg": 58.272154674012036,
+    "sigma_x_m": 0.004053286978792678,
+    "sigma_z_m": 0.004112430170493022,
+    "cov_xz_m2": [
+      [
+        1.6429135332450275e-05,
+        8.605468979281657e-08
+      ],
+      [
+        8.605468979281657e-08,
+        1.6912081907181267e-05
+      ]
+    ],
+    "L_centroid_m": 0.57,
+    "references": [
+      {
+        "name": "S2",
+        "L_m": 0.59
+      },
+      {
+        "name": "S1",
+        "L_m": 0.56
+      }
+    ],
+    "sensors_used": [
+      "S2",
+      "S1"
+    ],
+    "sigma_tape_m": 0.005,
+    "ls_residual_m": 0.0008920613520514247,
+    "cond_number": 1.7321254118151337,
+    "cond_warn": false
+  }
+}

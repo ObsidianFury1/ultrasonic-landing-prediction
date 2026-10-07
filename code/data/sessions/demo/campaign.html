@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign Dashboard</title>
+<style>
+  :root{
+    --scope-bg:#060b14; --bg:#070d17; --panel:rgba(13,22,34,.6);
+    --hair:rgba(96,168,196,.20); --hair-soft:rgba(96,168,196,.10); --grid:rgba(94,180,205,.13);
+    --ink:#e9f5f6; --ink-dim:#7e98a7; --ink-faint:#5b7180;
+    --phosphor:#46e3c6; --amber:#ffb24a; --coral:#ff5d6c; --steel:#6fb0ff;
+    --font-display:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 18% -10%,rgba(70,227,198,.05),transparent 60%),
+      radial-gradient(900px 600px at 110% 120%,rgba(111,176,255,.05),transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--font-mono);-webkit-font-smoothing:antialiased;
+    min-height:100vh;letter-spacing:.01em;counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.35;
+    background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px);
+    mix-blend-mode:overlay;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+
+  header.bar{
+    display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+    border:1px solid var(--hair);border-radius:3px;
+    background:linear-gradient(180deg,rgba(18,30,46,.55),rgba(10,17,27,.55));
+    padding:12px 16px 14px;margin-bottom:16px;position:relative;
+  }
+  header.bar::after{content:"";position:absolute;left:16px;right:16px;bottom:4px;height:3px;
+    background-image:repeating-linear-gradient(90deg,var(--hair) 0 1px,transparent 1px 11px)}
+  .lamp{width:8px;height:8px;border-radius:50%;background:var(--phosphor);
+    box-shadow:0 0 10px var(--phosphor);flex:none;animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .sys{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase}
+  .sys b{color:var(--ink);font-weight:600}
+  .spacer{flex:1}
+  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-dim);border:1px solid var(--hair);border-radius:2px;padding:5px 12px}
+
+  .panel{
+    border:1px solid var(--hair);border-radius:3px;background:var(--panel);
+    backdrop-filter:blur(6px);padding:15px 16px;position:relative}
+  .panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;
+    border:1.5px solid var(--phosphor);opacity:.5;pointer-events:none}
+  .panel::before{top:5px;left:5px;border-right:0;border-bottom:0}
+  .panel::after{bottom:5px;right:5px;border-left:0;border-top:0}
+  .panel .eyebrow{
+    font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-faint);display:flex;align-items:center;gap:9px;margin:0 0 12px}
+  .eyebrow::before{counter-increment:sec;content:"[" counter(sec,decimal-leading-zero) "]";
+    color:var(--phosphor);letter-spacing:.08em}
+  .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hair),transparent)}
+
+  .grid{display:grid;gap:14px}
+  .camp-top{grid-template-columns:1fr 1fr}
+  @media(max-width:880px){.camp-top{grid-template-columns:1fr}}
+  .scopewrap{position:relative;display:flex;justify-content:center;align-items:center;min-height:360px}
+  .scopewrap .sweep{position:absolute;width:488px;height:488px;max-width:90%;aspect-ratio:1;border-radius:50%;
+    background:conic-gradient(from 0deg,rgba(70,227,198,.13),transparent 22%);
+    animation:sweep 5.5s linear infinite;pointer-events:none}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  canvas{position:relative;max-width:100%;display:block}
+  .profcanvas{margin-top:12px;display:flex;justify-content:center}
+
+  .camp-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  @media(max-width:680px){.camp-stat-row{grid-template-columns:1fr}}
+  .stat{border-top:2px solid rgba(96,168,196,.3)}
+  .stat::before,.stat::after{display:none}
+  .stat.ok{border-top-color:var(--phosphor)}
+  .stat.await{border-top-color:var(--amber)}
+  .stat .num{font-family:var(--font-mono);font-size:25px;font-weight:600;color:var(--ink);line-height:1;
+    letter-spacing:.01em;font-variant-numeric:tabular-nums}
+  .stat .num small{font-size:12px;color:var(--ink-dim);font-weight:400}
+  .stat .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);margin-top:8px}
+  .stat.ok .num{color:var(--phosphor)}
+  .stat.await .num{color:var(--amber);font-size:15px}
+
+  .bias-pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10.5px;
+    letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--hair);border-radius:2px;padding:5px 12px;color:var(--phosphor)}
+  .bias-pill.nosig{color:var(--ink-dim)}
+  .bias-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--phosphor);box-shadow:0 0 7px var(--phosphor)}
+  .bias-pill.nosig .dot{background:var(--ink-dim);box-shadow:none}
+  .bias-meta{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-dim)}
+  .hint{font-size:11.5px;color:var(--ink-faint);margin-top:12px;line-height:1.55}
+
+  table.throws{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums}
+  table.throws th{text-align:right;font-weight:500;color:var(--ink-faint);letter-spacing:.12em;text-transform:uppercase;
+    font-size:9.5px;padding:8px 10px;border-bottom:1px solid var(--hair)}
+  table.throws th:first-child{text-align:left}
+  table.throws td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--hair-soft);color:var(--ink)}
+  table.throws td:first-child{text-align:left;color:var(--ink-dim)}
+  table.throws tr:hover td{background:rgba(70,227,198,.05)}
+  .empty{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);padding:10px 0}
+
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <span class="lamp"></span>
+    <span class="sys">Campaign &middot; <b id="h-n">--</b> ground-truthed</span>
+    <span class="spacer"></span>
+    <span class="badge">Campaign dashboard</span>
+  </header>
+
+  <div class="grid camp-top">
+    <div class="panel">
+      <p class="eyebrow">Campaign scope &middot; all throws</p>
+      <div class="scopewrap"><div class="sweep"></div><canvas id="cscope" width="540" height="540"></canvas></div>
+    </div>
+    <div>
+      <div class="camp-stat-row">
+        <div class="panel stat"><div class="num" id="c-n">--</div><div class="lbl">Throws &middot; ground-truthed</div></div>
+        <div class="panel stat" id="card-corr"><div class="num" id="c-corr">--</div><div class="lbl">Mean error &middot; corrected</div></div>
+        <div class="panel stat" id="card-raw"><div class="num" id="c-raw">--</div><div class="lbl">Mean error &middot; raw</div></div>
+      </div>
+      <div class="panel" style="margin-bottom:16px">
+        <p class="eyebrow">Bias model &middot; throw-aligned</p>
+        <div id="bias-body"><div class="empty">No correction_model.json yet.</div></div>
+        <p class="hint" id="power-note"></p>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">Error distribution &middot; 2-D</p>
+        <div class="profcanvas" style="margin:0"><canvas id="chist" width="500" height="200"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <p class="eyebrow">Throws</p>
+    <table class="throws">
+      <thead><tr>
+        <th>Session</th><th>r (m)</th><th>θ (°)</th><th>used</th>
+        <th>raw err (mm)</th><th>corr err (mm)</th><th>φ (°)</th>
+      </tr></thead>
+      <tbody id="camprows"></tbody>
+    </table>
+    <div class="empty" id="throws-empty" hidden>No ground-truthed throws yet.</div>
+  </div>
+</div>
+
+<script>window.__DATA__ = {"n": 10, "awaiting": false, "raw": {"mean_mm": 27.584028204320322, "std_mm": 12.8165288780721, "ci_mm": [18.41563576081899, 36.75242064782165]}, "corrected": null, "along_bias_mm": 20.6441614036055, "along_scatter_mm": 11.093205616585886, "mode": "none", "power_note": "Statistical power note: a 95% CI excludes zero at approximately N=2 throws. Current N=10.", "underpowered_null_note": "", "bias_model": {"present": false}, "geometry": {"vertices_xz": [[0.5774, 0.0], [-0.2887, 0.5], [-0.2887, -0.5]]}, "throws": [{"session_id": "sim_2026-07-09_010625_S01", "r": 1.9984762092504322, "theta": 25.829019156294923, "x_pred": 1.7988248789894667, "z_pred": 0.8707101777678425, "x_actual": 1.7775383710605046, "z_actual": 0.8758346320253869, "heading_deg": 22.569924116889897, "used": 12, "err_raw_mm": 21.894644350786628, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S03", "r": 1.8186197658244232, "theta": -29.655873219702016, "x_pred": 1.580403924033738, "z_pred": -0.8998340344452652, "x_actual": 1.5547175076424815, "z_actual": -0.9039155853201932, "heading_deg": -29.60701214441243, "used": 17, "err_raw_mm": 26.008672487646002, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S04", "r": 2.10068718687961, "theta": 32.800392005920855, "x_pred": 1.7657597079565082, "z_pred": 1.1379715773592576, "x_actual": 1.7378020705257773, "z_actual": 1.1163296165904237, "heading_deg": 34.77726979207649, "used": 12, "err_raw_mm": 35.35539501445214, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S06", "r": 1.965238554334731, "theta": 48.478778297651544, "x_pred": 1.3027515425964933, "z_pred": 1.4713942346312632, "x_actual": 1.3216088764486245, "z_actual": 1.4274361001122398, "heading_deg": 50.17776329820445, "used": 14, "err_raw_mm": 47.832171499977825, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S07", "r": 1.9216159638379822, "theta": -18.43552085225255, "x_pred": 1.8229989032333669, "z_pred": -0.6076865238648288, "x_actual": 1.8047917047633144, "z_actual": -0.5772387304282942, "heading_deg": -18.778911128422646, "used": 12, "err_raw_mm": 35.476332973994936, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S08", "r": 1.8361038662011644, "theta": 35.06872230303425, "x_pred": 1.5027839786581185, "z_pred": 1.054949155631369, "x_actual": 1.4918307849021084, "z_actual": 1.0594930563076064, "heading_deg": 34.17344429255584, "used": 15, "err_raw_mm": 11.858308766945187, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S09", "r": 2.054563733174028, "theta": -56.370050449839674, "x_pred": 1.1378725743613956, "z_pred": -1.7106952207188075, "x_actual": 1.1099148018498595, "z_actual": -1.6954024048283864, "heading_deg": -55.24273238343499, "used": 14, "err_raw_mm": 31.86702467544026, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S10", "r": 1.9469387469172046, "theta": -49.40205806651693, "x_pred": 1.266964439307795, "z_pred": -1.4783002380359072, "x_actual": 1.2624322833876158, "z_actual": -1.4836950976617207, "heading_deg": -45.71150041239311, "used": 15, "err_raw_mm": 7.0459170919794625, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S11", "r": 2.057236545503345, "theta": 20.312965141636944, "x_pred": 1.9292978368317737, "z_pred": 0.7141652896569348, "x_actual": 1.9108836712283748, "z_actual": 0.7103046671127035, "heading_deg": 22.536832390380543, "used": 9, "err_raw_mm": 18.814513049729122, "err_corr_mm": null}, {"session_id": "sim_2026-07-09_010625_S12", "r": 2.003933051574169, "theta": -21.696060896289346, "x_pred": 1.8619704053925377, "z_pred": -0.7408197382857107, "x_actual": 1.841577420561267, "z_actual": -0.7067725927341643, "heading_deg": -21.85151356214067, "used": 14, "err_raw_mm": 39.68730213225163, "err_corr_mm": null}]};</script>
+<script>
+(function(){
+  "use strict";
+  var D = window.__DATA__ || {};
+  var MINUS = "−";
+  function fnum(v,d){ if(v===null||v===undefined||(typeof v==="number"&&!isFinite(v))) return "--";
+    return Number(v).toFixed(d===undefined?1:d).replace("-",MINUS); }
+  function setText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+  function setHTML(id,t){ var e=document.getElementById(id); if(e) e.innerHTML=t; }
+
+  setText("h-n", D.n);
+  setText("c-n", D.n);
+
+  // ---- error stat cards ----
+  if(D.awaiting){
+    document.getElementById("card-raw").classList.add("await");
+    document.getElementById("card-corr").classList.add("await");
+    setText("c-raw","Awaiting ground truth"); setText("c-corr","Awaiting ground truth");
+  } else {
+    document.getElementById("card-raw").classList.add("ok");
+    setHTML("c-raw", fnum(D.raw.mean_mm,1)+"<small> mm</small>");
+    if(D.corrected){
+      document.getElementById("card-corr").classList.add("ok");
+      setHTML("c-corr", fnum(D.corrected.mean_mm,1)+"<small> mm</small>");
+    } else {
+      document.getElementById("card-corr").classList.add("await");
+      setText("c-corr","No model");
+    }
+  }
+
+  // ---- bias model status ----
+  (function(){
+    var b=D.bias_model||{present:false}, host=document.getElementById("bias-body");
+    if(!b.present){ return; }
+    var cls = b.significant ? "bias-pill" : "bias-pill nosig";
+    var label = (b.mode||"none").toUpperCase() + (b.significant ? " · ACTIVE" : " · INACTIVE");
+    host.innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'+
+      '<span class="'+cls+'"><span class="dot"></span>'+label+'</span>'+
+      '<span class="bias-meta">along-track '+fnum(b.along_mean_mm,1)+' mm &nbsp;CI ('+
+      fnum(b.along_ci_mm[0],1)+', '+fnum(b.along_ci_mm[1],1)+')</span></div>'+
+      (b.verdict ? '<p class="hint">'+b.verdict+'</p>' : '');
+  })();
+
+  var pn=(D.power_note||"")+(D.underpowered_null_note?("  "+D.underpowered_null_note):"");
+  setText("power-note", pn);
+
+  /* ============================================================
+     CAMPAIGN SCOPE  (mock visual; fed from D.throws)
+     ============================================================ */
+  function glowDot(x,px,py,c,r){ x.save();x.shadowColor=c;x.shadowBlur=14;
+    x.beginPath();x.arc(px,py,r,0,7);x.fillStyle=c;x.fill();x.restore(); }
+  (function drawCampScope(){
+    var cv=document.getElementById("cscope"); if(!cv) return;
+    var x=cv.getContext("2d"),W=cv.width,H=cv.height,cx=W/2,cy=H/2,RMAX=3.0,sc=(Math.min(W,H)/2-26)/RMAX;
+    x.clearRect(0,0,W,H);
+    // range rings + tick labels
+    x.font="10px ui-monospace,monospace";
+    [0.5,1,1.5,2,2.5,3].forEach(function(rr){ x.beginPath();x.arc(cx,cy,rr*sc,0,7);x.strokeStyle="rgba(94,180,205,.12)";x.lineWidth=1;x.stroke();
+      x.fillStyle="rgba(91,113,128,.85)";x.fillText(rr.toFixed(1),cx+3,cy-rr*sc-3); });
+    // bearing spokes + degree labels (000-330)
+    for(var a=0;a<360;a+=30){ var r=a*Math.PI/180;x.beginPath();x.moveTo(cx,cy);
+      x.lineTo(cx+Math.cos(r)*RMAX*sc,cy-Math.sin(r)*RMAX*sc);x.strokeStyle="rgba(94,180,205,.06)";x.stroke();
+      var lx=cx+Math.cos(r)*(RMAX*sc+13),ly=cy-Math.sin(r)*(RMAX*sc+13);
+      x.fillStyle="rgba(91,113,128,.8)";x.font="9px ui-monospace,monospace";
+      x.fillText((a<100?("0"+a).slice(-3):String(a)),lx-8,ly+3); }
+    // center reticle
+    x.strokeStyle="rgba(70,227,198,.5)";x.lineWidth=1;x.beginPath();
+    x.moveTo(cx-10,cy);x.lineTo(cx-4,cy);x.moveTo(cx+4,cy);x.lineTo(cx+10,cy);
+    x.moveTo(cx,cy-10);x.lineTo(cx,cy-4);x.moveTo(cx,cy+4);x.lineTo(cx,cy+10);x.stroke();
+    // sensor dots in bracket boxes (replaces the play-button-shaped array triangle)
+    var V=(D.geometry&&D.geometry.vertices_xz)||[];
+    V.forEach(function(v,i){ var px=cx+v[0]*sc,py=cy-v[1]*sc;
+      x.strokeStyle="rgba(111,176,255,.5)";x.lineWidth=1;x.strokeRect(px-6,py-6,12,12);
+      x.beginPath();x.arc(px,py,3.5,0,7);x.fillStyle="#6fb0ff";x.fill();
+      x.fillStyle="rgba(111,176,255,.85)";x.font="10px ui-monospace,monospace";x.fillText("S"+(i+1),px+8,py-6); });
+    (D.throws||[]).forEach(function(t){
+      var px=cx+t.x_pred*sc, py=cy-t.z_pred*sc, gx=cx+t.x_actual*sc, gy=cy-t.z_actual*sc;
+      x.beginPath();x.moveTo(px,py);x.lineTo(gx,gy);x.strokeStyle="rgba(255,93,108,.5)";x.lineWidth=1.2;x.stroke();
+      glowDot(x,px,py,"#46e3c6",3.5);
+      x.beginPath();x.arc(gx,gy,3,0,7);x.fillStyle="rgba(255,178,74,.85)";x.fill();
+    });
+    x.beginPath();x.arc(cx,cy,2,0,7);x.fillStyle="rgba(233,245,246,.5)";x.fill();
+  })();
+
+  /* ============================================================
+     ERROR HISTOGRAM  (mock visual; D.throws err_raw_mm)
+     ============================================================ */
+  (function drawHist(){
+    var cv=document.getElementById("chist"); if(!cv) return;
+    var x=cv.getContext("2d"),W=cv.width,H=cv.height,L=30,B=26,T=12,R=12;
+    x.clearRect(0,0,W,H);
+    var errs=(D.throws||[]).map(function(t){return t.err_raw_mm;}).filter(function(v){return v!=null;});
+    if(!errs.length){ x.fillStyle="rgba(81,101,115,.9)";x.font="12px ui-monospace,monospace";x.fillText("Awaiting ground truth.",L,H/2); return; }
+    var mxe=Math.max.apply(null,errs), hi=Math.max(20,Math.ceil(mxe/20)*20), nb=5, bins=new Array(nb).fill(0), bw=hi/nb;
+    errs.forEach(function(e){ bins[Math.min(nb-1,Math.floor(e/bw))]++; });
+    var gw=(W-L-R)/nb, bmax=Math.max.apply(null,bins);
+    x.font="10px ui-monospace,monospace";
+    bins.forEach(function(b,i){ var h=(b/bmax)*(H-T-B), bx=L+i*gw+4;
+      x.fillStyle="rgba(70,227,198,.5)";x.fillRect(bx,H-B-h,gw-8,h);
+      x.fillStyle="rgba(70,227,198,.95)";x.fillRect(bx,H-B-h,gw-8,2);
+      x.fillStyle="rgba(81,101,115,.9)";x.fillText(Math.round(i*bw),bx,H-B+14); });
+    x.strokeStyle="rgba(96,168,196,.2)";x.lineWidth=1;x.beginPath();x.moveTo(L,H-B);x.lineTo(W-R,H-B);x.stroke();
+    x.fillStyle="rgba(81,101,115,.95)";x.fillText("2-D error (mm)",W-110,H-B+14);
+    var mean=errs.reduce(function(a,b){return a+b;},0)/errs.length, mx=L+(mean/hi)*(W-L-R);
+    x.beginPath();x.setLineDash([4,3]);x.moveTo(mx,T);x.lineTo(mx,H-B);x.strokeStyle="rgba(255,178,74,.8)";x.stroke();x.setLineDash([]);
+  })();
+
+  /* ============================================================
+     THROWS TABLE  (mock visual; D.throws)
+     ============================================================ */
+  (function(){
+    var tb=document.getElementById("camprows"), rows=D.throws||[];
+    if(!rows.length){ document.getElementById("throws-empty").hidden=false; return; }
+    rows.forEach(function(t){ var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+t.session_id+"</td><td>"+fnum(t.r,3)+"</td><td>"+fnum(t.theta,1)+"</td>"+
+        "<td>"+(t.used==null?"--":t.used)+"</td>"+
+        "<td style='color:#ff8a94'>"+fnum(t.err_raw_mm,1)+"</td>"+
+        "<td style='color:#46e3c6'>"+(t.err_corr_mm==null?"--":fnum(t.err_corr_mm,1))+"</td>"+
+        "<td>"+fnum(t.heading_deg,1)+"</td>";
+      tb.appendChild(tr); });
+  })();
+})();
+</script>
+</body>
+</html>

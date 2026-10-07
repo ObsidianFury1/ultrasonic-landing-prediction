@@ -1,0 +1,70 @@
+{
+  "mode": "scalar",
+  "frame": "track",
+  "offset_along_m": 0.06753442285837132,
+  "offset_cross_m": 0.0,
+  "linear_slope": 0.0,
+  "linear_intercept": 0.0,
+  "n_throws": 31,
+  "alpha": 0.05,
+  "along": {
+    "mean": 0.06753442285837132,
+    "std": 0.05966008020305238,
+    "sem": 0.010715266723810837,
+    "ci_low": 0.04565092876641124,
+    "ci_high": 0.08941791695033138,
+    "significant": true
+  },
+  "cross": {
+    "mean": 0.0018477310072559485,
+    "std": 0.05128509381337991,
+    "sem": 0.009211074763823584,
+    "ci_low": -0.016963793275832386,
+    "ci_high": 0.02065925529034428,
+    "significant": false
+  },
+  "diagnostics": {
+    "cal_indices": [
+      0,
+      2,
+      3,
+      4,
+      6,
+      8,
+      10,
+      11,
+      16,
+      18,
+      21,
+      23,
+      25,
+      26,
+      29,
+      30
+    ],
+    "val_indices": [
+      1,
+      5,
+      7,
+      9,
+      12,
+      13,
+      14,
+      15,
+      17,
+      19,
+      20,
+      22,
+      24,
+      27,
+      28
+    ],
+    "n_cal": 16,
+    "n_val": 15,
+    "val_error_before_m": 0.0902140493664431,
+    "val_error_after_m": 0.05606530541781369,
+    "val_p_one_sided": 5.860457196530399e-05,
+    "verdict": "accepted: validation error improved 0.090 -> 0.056 m (p = 0.0001); offsets refit on all throws"
+  },
+  "created": "2026-07-09T22:14:59"
+}

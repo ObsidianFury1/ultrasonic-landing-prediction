@@ -1,0 +1,37 @@
+{
+  "kind": "static_characterization",
+  "created": "2026-07-09T17:24:23",
+  "target": "ball",
+  "raw_tape_m": 1.58,
+  "centre_reference_m": 1.7000000000000002,
+  "ball_radius_m": 0.12,
+  "temperature_c": 34.0,
+  "angle_off_axis_deg": null,
+  "n_readings_target": 200,
+  "sensors": {
+    "1": {
+      "n": 200,
+      "n_timeout": 200,
+      "timeout_fraction": 1.0,
+      "mean_m": null,
+      "sigma_m": null,
+      "offset_m": null
+    },
+    "2": {
+      "n": 200,
+      "n_timeout": 200,
+      "timeout_fraction": 1.0,
+      "mean_m": null,
+      "sigma_m": null,
+      "offset_m": null
+    },
+    "3": {
+      "n": 200,
+      "n_timeout": 0,
+      "timeout_fraction": 0.0,
+      "mean_m": 1.7212864362299996,
+      "sigma_m": 0.00901546271886412,
+      "offset_m": 0.021286436229999373
+    }
+  }
+}

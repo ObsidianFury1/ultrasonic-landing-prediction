@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing Report</title>
+<style>
+  :root{
+    --scope-bg:#060b14; --bg:#070d17; --panel:rgba(13,22,34,.6); --panel-solid:#0c1623;
+    --hair:rgba(96,168,196,.20); --hair-soft:rgba(96,168,196,.10); --grid:rgba(94,180,205,.13);
+    --ink:#e9f5f6; --ink-dim:#7e98a7; --ink-faint:#5b7180;
+    --phosphor:#46e3c6; --phosphor-dim:rgba(70,227,198,.45);
+    --amber:#ffb24a; --coral:#ff5d6c; --steel:#6fb0ff;
+    --font-display:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 18% -10%,rgba(70,227,198,.05),transparent 60%),
+      radial-gradient(900px 600px at 110% 120%,rgba(111,176,255,.05),transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--font-mono);-webkit-font-smoothing:antialiased;
+    min-height:100vh;letter-spacing:.01em;counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.35;
+    background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px);
+    mix-blend-mode:overlay;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+
+  header.bar{
+    display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+    border:1px solid var(--hair);border-radius:3px;
+    background:linear-gradient(180deg,rgba(18,30,46,.55),rgba(10,17,27,.55));
+    padding:12px 16px 14px;margin-bottom:16px;position:relative;
+  }
+  header.bar::after{content:"";position:absolute;left:16px;right:16px;bottom:4px;height:3px;
+    background-image:repeating-linear-gradient(90deg,var(--hair) 0 1px,transparent 1px 11px)}
+  .lamp{width:8px;height:8px;border-radius:50%;background:var(--phosphor);
+    box-shadow:0 0 10px var(--phosphor);flex:none;animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .sys{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase}
+  .sys b{color:var(--ink);font-weight:600}
+  .spacer{flex:1}
+  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-dim);border:1px solid var(--hair);border-radius:2px;padding:5px 12px}
+
+  .panel{
+    border:1px solid var(--hair);border-radius:3px;background:var(--panel);
+    backdrop-filter:blur(6px);padding:15px 16px;position:relative}
+  .panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;
+    border:1.5px solid var(--phosphor);opacity:.5;pointer-events:none}
+  .panel::before{top:5px;left:5px;border-right:0;border-bottom:0}
+  .panel::after{bottom:5px;right:5px;border-left:0;border-top:0}
+  .panel .eyebrow{
+    font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-faint);display:flex;align-items:center;gap:9px;margin:0 0 12px}
+  .eyebrow::before{counter-increment:sec;content:"[" counter(sec,decimal-leading-zero) "]";
+    color:var(--phosphor);letter-spacing:.08em}
+  .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hair),transparent)}
+
+  .grid{display:grid;gap:16px}
+  .top{grid-template-columns:1.15fr .85fr}
+  @media(max-width:880px){.top{grid-template-columns:1fr}}
+  .quad{grid-template-columns:repeat(5,1fr);margin-top:16px}
+  @media(max-width:880px){.quad{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.quad{grid-template-columns:repeat(2,1fr)}}
+
+  .scopewrap{position:relative;display:flex;justify-content:center;align-items:center;min-height:380px}
+  .scopewrap .sweep{position:absolute;width:508px;height:508px;max-width:90%;aspect-ratio:1;border-radius:50%;
+    background:conic-gradient(from 0deg,rgba(70,227,198,.13),transparent 22%);
+    animation:sweep 5.5s linear infinite;pointer-events:none}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  canvas{position:relative;max-width:100%;display:block;touch-action:none}
+
+  .readout{display:flex;flex-direction:column;gap:14px}
+  .result-card{border:1px solid var(--hair);border-radius:3px;padding:14px 15px;background:rgba(6,12,20,.5)}
+  .chan{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:10px}
+  .chan .dot{width:8px;height:8px;border-radius:50%}
+  .dot.pred{background:var(--phosphor);box-shadow:0 0 8px var(--phosphor)}
+  .dot.gt{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+  .pcoords{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+  .coord .k{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase}
+  .coord .v{font-family:var(--font-mono);font-size:25px;font-weight:600;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+  .coord .v small{font-size:13px;color:var(--ink-dim);font-weight:400}
+  .coord .sd{font-family:var(--font-mono);font-size:11px;color:var(--phosphor)}
+  .toggle-raw{display:inline-flex;border:1px solid var(--hair);border-radius:3px;overflow:hidden;margin-top:2px}
+  .toggle-raw button{font:inherit;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-dim);background:none;border:0;padding:6px 12px;cursor:pointer}
+  .toggle-raw button[aria-pressed=true]{background:rgba(70,227,198,.14);color:var(--phosphor)}
+  .toggle-raw button:disabled{opacity:.35;cursor:not-allowed}
+
+  .gt-input label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px}
+  .field{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .field input{
+    flex:1;font-family:var(--font-mono);font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;
+    background:rgba(0,0,0,.35);border:1px solid var(--hair);border-radius:3px;padding:9px 12px;outline:none}
+  .field input:focus{border-color:var(--phosphor);box-shadow:0 0 0 3px rgba(70,227,198,.12)}
+  .field .unit{font-family:var(--font-mono);font-size:13px;color:var(--ink-faint);width:18px}
+  .btn{
+    width:100%;font:inherit;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px;
+    color:var(--scope-bg);background:var(--phosphor);border:0;border-radius:3px;padding:12px;cursor:pointer;
+    box-shadow:0 0 18px rgba(70,227,198,.25);transition:transform .1s ease;
+    clip-path:polygon(0 0,100% 0,100% 100%,9px 100%,0 calc(100% - 9px))}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .btn:focus-visible{outline:2px solid var(--phosphor);outline-offset:2px}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.5}
+  .msg{font-family:var(--font-mono);font-size:12px;color:var(--coral);margin-top:8px;min-height:1em}
+
+  .gt-result{display:none}
+  .gt-result.show{display:block;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+  .errbig{font-family:var(--font-mono);font-size:40px;font-weight:700;color:var(--coral);line-height:1;letter-spacing:-.01em}
+  .errbig small{font-size:16px;color:var(--ink-dim);font-weight:400}
+  .err-sub{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);margin-top:6px}
+  .gt-coords{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-top:14px;
+    border-top:1px solid var(--hair);padding-top:12px}
+
+  /* recommendation / override panel (v2.3 G1) */
+  .gt-rec{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);line-height:1.5;margin-bottom:12px}
+  .gt-rec b{color:var(--steel)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .chip{font:inherit;font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;
+    color:var(--ink-dim);background:rgba(111,176,255,.06);border:1px solid var(--hair);
+    border-radius:2px;padding:6px 14px;cursor:pointer;transition:all .12s ease}
+  .chip.selected{background:rgba(111,176,255,.18);border-color:var(--steel);color:var(--ink)}
+  .chip.recommended{box-shadow:0 0 0 2px rgba(70,227,198,.45);border-color:var(--phosphor)}
+  .chip.locked{cursor:default;color:var(--ink-faint);background:rgba(233,245,246,.05);
+    border-style:dashed}
+  .chip:focus-visible{outline:2px solid var(--phosphor);outline-offset:2px}
+  .btn-ghost{font:inherit;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--phosphor);background:rgba(70,227,198,.08);
+    border:1px solid rgba(70,227,198,.4);border-radius:3px;padding:8px 14px;cursor:pointer;margin-bottom:14px}
+  .btn-ghost:hover{background:rgba(70,227,198,.16)}
+  .integrity{margin-top:10px;border:1px solid rgba(255,178,74,.34);border-left:2px solid var(--amber);
+    background:rgba(255,178,74,.07);border-radius:0 3px 3px 0;padding:8px 12px;
+    font-family:var(--font-mono);font-size:11.5px;color:#ffd9a3}
+  .used-line{font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);margin-top:10px}
+  .used-line b{color:var(--steel)}
+
+  .profwrap{margin-top:16px}
+  .profhead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;color:var(--ink-dim);letter-spacing:.06em}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:14px;height:0;border-top:2px solid;display:inline-block}
+  .legend .raw i{border-top-style:dotted;border-color:var(--ink-faint)}
+  .legend .kal i{border-color:var(--phosphor)}
+  .legend .fit i{border-color:var(--steel);border-top-style:dashed}
+  .dimtoggle{display:inline-flex;border:1px solid var(--hair);border-radius:3px;overflow:hidden}
+  .dimtoggle button{font:inherit;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;
+    color:var(--ink-dim);background:none;border:0;padding:6px 13px;cursor:pointer}
+  .dimtoggle button[aria-pressed=true]{background:rgba(111,176,255,.16);color:var(--steel)}
+  .profcanvas{margin-top:12px;display:flex;justify-content:center}
+  .profhint{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin-top:8px}
+
+  details.rvt{margin-top:16px}
+  details.rvt>summary{cursor:pointer;list-style:none;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);padding:2px 0}
+  details.rvt>summary::-webkit-details-marker{display:none}
+  details.rvt>summary::before{content:"\25B8";color:var(--steel);margin-right:8px}
+  details.rvt[open]>summary::before{content:"\25BE"}
+
+  .stat{border-top:2px solid rgba(96,168,196,.3)}
+  .stat::before,.stat::after{display:none}
+  .stat.ok{border-top-color:var(--phosphor)}
+  .stat.bad{border-top-color:var(--coral)}
+  .stat .num{font-family:var(--font-mono);font-size:26px;font-weight:600;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+  .stat .num small{font-size:13px;color:var(--ink-dim);font-weight:400}
+  .stat .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-faint);margin-top:8px}
+  .stat.ok .num{color:var(--phosphor)}
+  .stat.bad .num{color:var(--coral)}
+
+  .caveat{margin-top:16px;border:1px solid rgba(255,178,74,.32);border-left:2px solid var(--amber);
+    border-radius:0 3px 3px 0;background:rgba(255,178,74,.06);padding:13px 16px;display:flex;gap:13px;align-items:flex-start}
+  .caveat .lamp2{width:11px;height:11px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 10px var(--amber);flex:none;margin-top:3px}
+  .caveat .t{font-size:13px;color:#f2dcb6;line-height:1.55}
+  .caveat .t b{color:var(--amber);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;display:block;margin-bottom:3px}
+
+  .failbox{border:1px solid rgba(255,93,108,.4);border-left:2px solid var(--coral);
+    border-radius:0 3px 3px 0;background:rgba(255,93,108,.06);
+    padding:18px 20px;color:#ffb3ba;font-size:14px;line-height:1.55;margin-bottom:18px}
+  .failbox b{color:var(--coral);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;display:block;margin-bottom:5px}
+
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <span class="lamp"></span>
+    <span class="sys">Session <b id="h-sid">--</b></span>
+    <span class="sys" id="h-time" hidden></span>
+    <span class="sys" id="h-temp" hidden></span>
+    <span class="spacer"></span>
+    <span class="badge">Per-throw report</span>
+  </header>
+
+  <!-- failure empty-state -->
+  <div class="failbox" id="failbox" hidden><b>No valid prediction</b><span id="failtext"></span></div>
+
+  <div id="mainrow">
+    <div class="grid top">
+      <!-- SIGNATURE: polar landing scope -->
+      <div class="panel">
+        <p class="eyebrow">Landing scope &middot; polar from centroid</p>
+        <div class="scopewrap"><div class="sweep"></div><canvas id="scope" width="560" height="560"></canvas></div>
+      </div>
+
+      <!-- readout + ground truth -->
+      <div class="readout">
+        <div class="panel">
+          <p class="eyebrow">Predicted landing</p>
+          <div class="result-card">
+            <div class="chan"><span class="dot pred"></span><span id="predmode">Raw trilateration</span></div>
+            <div class="pcoords">
+              <div class="coord"><div class="k">range r</div><div class="v" id="p-r">--</div><div class="sd" id="p-sr"></div></div>
+              <div class="coord"><div class="k">bearing &theta;</div><div class="v" id="p-t">--</div><div class="sd" id="p-st"></div></div>
+              <div class="coord"><div class="k">x</div><div class="v" id="p-x">--</div></div>
+              <div class="coord"><div class="k">z</div><div class="v" id="p-z">--</div></div>
+            </div>
+            <div style="margin-top:14px">
+              <span class="toggle-raw" id="rc-toggle">
+                <button data-ch="raw" aria-pressed="true">Raw</button>
+                <button data-ch="corrected" aria-pressed="false">Bias-corrected</button>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel gt-input" id="gtpanel">
+          <p class="eyebrow">Ground truth &middot; centroid + 2-sensor survey</p>
+          <div class="gt-form" id="gtform">
+            <div class="gt-rec">Recommended references: centroid + <b id="rec-names">--</b>
+              &mdash; the two sensors nearest the predicted landing.</div>
+            <div class="chips" id="chips">
+              <span class="chip locked" title="always a reference">centroid</span>
+              <button type="button" class="chip" data-s="S1">S1</button>
+              <button type="button" class="chip" data-s="S2">S2</button>
+              <button type="button" class="chip" data-s="S3">S3</button>
+            </div>
+            <button type="button" class="btn-ghost" id="accept-rec">Accept recommended</button>
+            <label for="lc">L &rarr; centroid</label>
+            <div class="field"><input id="lc" inputmode="decimal" placeholder="L_centroid"><span class="unit">m</span></div>
+            <label for="la" id="lab-a">L &rarr; --</label>
+            <div class="field"><input id="la" inputmode="decimal" placeholder="L_a"><span class="unit">m</span></div>
+            <label for="lb" id="lab-b">L &rarr; --</label>
+            <div class="field"><input id="lb" inputmode="decimal" placeholder="L_b"><span class="unit">m</span></div>
+            <button class="btn" id="gtsave">Compute &amp; save &rarr; next</button>
+            <div class="msg" id="gtmsg"></div>
+            <p class="hint" id="gtnote"></p>
+            <p class="hint">The recommendation only chooses which tapes are easiest to measure
+              accurately; the landing is solved from the three measured distances, so accepting it
+              does not bias the result.</p>
+          </div>
+          <div class="gt-result" id="gtresult">
+            <div class="chan"><span class="dot gt"></span>Surveyed vs predicted</div>
+            <div class="errbig" id="err2d">--</div>
+            <div class="err-sub" id="err-sub">2-D Euclidean error &middot; raw prediction</div>
+            <div class="gt-coords">
+              <div class="coord"><div class="k">truth r</div><div class="v" id="g-r" style="font-size:18px">--</div></div>
+              <div class="coord"><div class="k">truth &theta;</div><div class="v" id="g-t" style="font-size:18px">--</div></div>
+              <div class="coord"><div class="k">truth x</div><div class="v" id="g-x" style="font-size:18px">--</div></div>
+              <div class="coord"><div class="k">truth z</div><div class="v" id="g-z" style="font-size:18px">--</div></div>
+            </div>
+            <div class="used-line" id="g-used"></div>
+            <div class="integrity" id="g-integrity" hidden></div>
+            <p class="hint">Saved to <span style="color:var(--ink-dim)">session.json &rarr; ground_truth</span>. Page is now frozen and self-contained.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- trajectory / vertical profile -->
+    <div class="panel profwrap">
+      <div class="profhead">
+        <p class="eyebrow" style="margin:0">Trajectory &middot; <span id="proftitle">vertical profile (downrange &times; height)</span></p>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <div class="legend">
+            <span class="raw"><i></i>raw</span>
+            <span class="kal"><i></i>Kalman</span>
+            <span class="fit"><i></i>parabola fit</span>
+          </div>
+          <span class="dimtoggle" id="dim-toggle">
+            <button data-dim="2d" aria-pressed="true">2D</button>
+            <button data-dim="3d" aria-pressed="false">3D</button>
+          </span>
+        </div>
+      </div>
+      <div class="profcanvas"><canvas id="prof" width="1040" height="340"></canvas></div>
+      <div class="profhint" id="traj-hint"></div>
+    </div>
+
+    <!-- range vs time (collapsible, real Stage-1 feature) -->
+    <details class="rvt">
+      <summary>Range vs time &middot; per-sensor gate behaviour</summary>
+      <div class="panel" style="margin-top:10px">
+        <div class="profcanvas" style="margin:0"><canvas id="rvt" width="1040" height="420"></canvas></div>
+        <div class="legend" style="margin-top:10px">
+          <span><i style="border:0;width:9px;height:9px;border-radius:50%;background:var(--steel)"></i>accepted</span>
+          <span><i style="border:0;width:9px;height:9px;border-radius:50%;background:var(--coral)"></i>gated</span>
+          <span><i style="border:0;width:12px;height:9px;border-radius:2px;background:rgba(70,227,198,.18)"></i>throw window</span>
+        </div>
+      </div>
+    </details>
+
+    <!-- stat strip -->
+    <div class="grid quad">
+      <div class="panel stat" id="card-yield"><div class="num" id="s-yield">--</div><div class="lbl">Triplets used &middot; in-window</div></div>
+      <div class="panel stat"><div class="num" id="s-head">--</div><div class="lbl">Heading &phi; &middot; speed v_h</div></div>
+      <div class="panel stat"><div class="num" id="s-temp">--</div><div class="lbl">Temp &middot; sound m/s</div></div>
+      <div class="panel stat"><div class="num" id="s-dof">--</div><div class="lbl">Fit dof (N &minus; 3)</div></div>
+      <div class="panel stat"><div class="num" id="s-malf">--</div><div class="lbl">Malformed lines</div></div>
+    </div>
+
+    <!-- caveat lamp -->
+    <div class="caveat" id="caveat" hidden>
+      <span class="lamp2"></span>
+      <div class="t"><b>Small-sample caveat</b><span id="caveat-text"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>window.__DATA__ = {"state": "frozen", "session_id": "2026-07-09_T04", "timestamp": null, "temperature_c": 32.0, "sound_speed_m_s": 350.792, "ball_radius_m": 0.1194, "min_fit_points": 4, "sensors": [{"name": "S1", "x": 0.5774, "z": 0.0}, {"name": "S2", "x": -0.2887, "z": 0.5}, {"name": "S3", "x": -0.2887, "z": -0.5}], "recommended": ["S2", "S1"], "residual_warn_m": 0.05, "geometry": {"vertices_xz": [[0.5774, 0.0], [-0.2887, 0.5], [-0.2887, -0.5]], "s_height_m": 0.045, "tilt_deg": 55.0}, "prediction": {"raw": {"x_m": 0.17949308656858165, "z_m": 0.4477935453575568, "r_m": 0.48242805410735246, "theta_deg": 68.15716519903629, "sigma_r_m": 0.016720767934875893, "sigma_theta_deg": 1.7574716432726822, "heading_deg": 75.34447084505805, "v_h_m_s": 1.8970464214868812, "n_points": 5, "dof": 2, "cov_xz_m2": [[0.0002088613323251465, 1.5573554186844507e-06], [1.5573554186844507e-06, 0.00028969873769471387]]}, "corrected": null, "model_id": null}, "yield": {"used": 5, "in_window": 5, "min_fit_points": 4, "pass": true}, "stats": {"heading_deg": 75.34447084505805, "v_h_m_s": 1.8970464214868812, "temperature_c": 32.0, "sound_speed_m_s": 350.792, "dof": 2, "n_points": 5, "malformed": 0}, "caveat": "R7 small-sample caveat: the landing covariance rests on only 2 degree(s) of freedom (5 fitted points, 3 parabola parameters), so the uncertainty ellipse is itself highly uncertain \u2014 treat (sigma_r, sigma_theta) as indicative, not as a calibrated confidence region.", "trajectory": {"t": [0.0, 0.05388599999999988, 0.10774499999999998, 0.16156799999999993, 0.2153670000000001], "xr": [0.023702, 0.054769, 0.077741, 0.087941, 0.099476], "yr": [0.87221, 0.870074, 0.838334, 0.774929, 0.686527], "zr": [-0.259631, -0.155061, -0.056455, 0.012462, 0.115309], "xk": [0.023702, 0.054769, 0.078753, 0.091596, 0.102925], "yk": [0.87221, 0.870044, 0.838476, 0.775881, 0.686588], "zk": [-0.259631, -0.155061, -0.055714, 0.0193, 0.114093]}, "range_vs_time": {"sensors": [{"sid": 1, "t": [3.134568, 3.1885535, 3.2425154999999997, 3.296402, 3.3502604999999996, 3.4040844999999997, 3.457883, 3.5116484999999997], "range": [0.9036401919999999, 0.8985537079999999, 0.8838204439999998, 0.8440055519999998, 0.7943684839999999, 0.7340322599999999, 0.6633476719999999, 0.5810869479999999], "valid": [1, 1, 1, 1, 1, 1, 1, 1]}, {"sid": 2, "t": [3.260856, 3.3146839999999997, 3.3684659999999997, 3.4222185, 3.475894, 3.5296425], "range": [1.0032651199999998, 0.942928896, 0.86645624, 0.77963522, 0.667206384, 0.578982196], "valid": [1, 1, 1, 1, 1, 1]}, {"sid": 3, "t": [1.3372454999999999, 1.3913155, 1.4452285, 2.795283, 2.8493415, 3.2782894999999996, 3.332388, 3.3864045, 3.4403759999999997, 3.4943964999999997], "range": [1.8428857719999998, 1.8660380439999997, 1.8355191399999997, 1.8546373039999997, 1.8765618039999996, 0.80594462, 0.8390944639999999, 0.8462856999999999, 0.8348849599999999, 0.8434793639999999], "valid": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}], "window": [3.2425154999999997, 3.4943964999999997]}, "ground_truth": {"x_m": 0.1642691882604052, "z_m": 0.35579420042292176, "r_m": 0.3918850332257136, "theta_deg": 65.21736173334011, "sigma_x_m": 0.004033229334053587, "sigma_z_m": 0.004482518351542679, "cov_xz_m2": [[1.6266938861070342e-05, 4.883838668761028e-06], [4.883838668761028e-06, 2.00929707719169e-05]], "L_centroid_m": 0.39, "references": [{"name": "S2", "L_m": 0.48}, {"name": "S1", "L_m": 0.55}], "sensors_used": ["S2", "S1"], "sigma_tape_m": 0.005, "ls_residual_m": 0.003992734708743729, "cond_number": 1.7321254118151337, "cond_warn": false}, "error_mm": {"raw": 93.25045065896278, "corrected": null}, "awaiting_ground_truth": false, "server": {"health": "/api/health", "ground_truth": "/api/ground-truth", "session_id": "2026-07-09_T04"}, "failure_used": 5, "failure_message": null};</script>
+<script>
+(function(){
+  "use strict";
+  var D = window.__DATA__ || {};
+  var MINUS = "−";
+  function fnum(v,d){ if(v===null||v===undefined||(typeof v==="number"&&!isFinite(v))) return "--";
+    var s=Number(v).toFixed(d===undefined?3:d); return s.replace("-",MINUS); }
+  function setText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+  function setHTML(id,t){ var e=document.getElementById(id); if(e) e.innerHTML=t; }
+  function show(id,on){ var e=document.getElementById(id); if(e) e.hidden=!on; }
+  function css(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  // ---- header ----
+  setText("h-sid", D.session_id||"--");
+  if(D.timestamp){ var ht=document.getElementById("h-time"); ht.hidden=false;
+    ht.innerHTML="<b>"+D.timestamp+"</b>"; }
+  if(D.temperature_c!=null){ var hp=document.getElementById("h-temp"); hp.hidden=false;
+    hp.innerHTML="Temp <b>"+fnum(D.temperature_c,1)+" °C</b>"; }
+
+  var raw=(D.prediction&&D.prediction.raw)||null;
+  var corr=(D.prediction&&D.prediction.corrected)||null;
+
+  // ---- failure mode ----
+  if(D.state==="failure"){
+    show("failbox",true);
+    setText("failtext", D.failure_message || "No valid prediction for this throw.");
+    show("mainrow",false);
+    return;   // nothing else to render
+  }
+
+  // ---- readout (raw / bias-corrected channel) ----
+  var channel="raw";
+  function readoutBlock(){ return channel==="corrected" ? corr : raw; }
+  function paintReadout(){
+    var b=readoutBlock();
+    setText("predmode", channel==="corrected" ? "Bias-corrected" : "Raw trilateration");
+    if(!b){ ["p-r","p-t","p-x","p-z"].forEach(function(i){setText(i,"--");});
+      setText("p-sr","");setText("p-st",""); return; }
+    setHTML("p-r", fnum(b.r_m,3)+"<small> m</small>");
+    setHTML("p-t", fnum(b.theta_deg,1)+"<small>°</small>");
+    setHTML("p-x", fnum(b.x_m,3)+"<small> m</small>");
+    setHTML("p-z", fnum(b.z_m,3)+"<small> m</small>");
+    setText("p-sr", b.sigma_r_m!=null ? ("± "+fnum(b.sigma_r_m,3)) : "");
+    setText("p-st", b.sigma_theta_deg!=null ? ("± "+fnum(b.sigma_theta_deg,1)+"°") : "");
+    drawScope(); drawProf();
+  }
+  (function initToggle(){
+    var btns=document.querySelectorAll("#rc-toggle button");
+    btns.forEach(function(btn){
+      if(btn.dataset.ch==="corrected" && !corr){ btn.disabled=true; }
+      btn.addEventListener("click",function(){
+        if(btn.disabled) return;
+        channel=btn.dataset.ch;
+        btns.forEach(function(b){ b.setAttribute("aria-pressed", b===btn?"true":"false"); });
+        paintReadout();
+      });
+    });
+  })();
+
+  // ---- ground-truth panel ----
+  // Selection of the two sensor references (v2.3 G1). Input mode: starts at the
+  // recommended pair, operator may override via chips. Frozen mode: the persisted
+  // sensors_used. selectedSensors() drives the scope highlight in drawScope.
+  var selected = (D.recommended || []).slice(0, 2);
+  function selectedSensors(){
+    if(D.state==="frozen" && D.ground_truth) return D.ground_truth.sensors_used || [];
+    return selected;
+  }
+
+  if(D.state==="frozen" && D.ground_truth){
+    var g=D.ground_truth;
+    document.getElementById("gtform").style.display="none";
+    document.getElementById("gtresult").classList.add("show");
+    setHTML("g-r", fnum(g.r_m,3)+"<small> m</small>");
+    setHTML("g-t", fnum(g.theta_deg,1)+"<small>°</small>");
+    setHTML("g-x", fnum(g.x_m,3)+"<small> m</small>");
+    setHTML("g-z", fnum(g.z_m,3)+"<small> m</small>");
+    var er=D.error_mm&&D.error_mm.raw, ec=D.error_mm&&D.error_mm.corrected;
+    setHTML("err2d", (er!=null?fnum(er,1):"--")+"<small> mm</small>");
+    setText("err-sub", ec!=null
+      ? ("2-D error · raw; corrected "+fnum(ec,1)+" mm")
+      : "2-D Euclidean error · raw prediction");
+    if(g.sensors_used) setHTML("g-used", "references: centroid + <b>"+g.sensors_used.join(", ")+"</b>");
+    // integrity flag (section 7.6): condition warning or a large LS residual.
+    var rw = D.residual_warn_m, res = g.ls_residual_m;
+    if(g.cond_warn || (res!=null && rw!=null && res>rw)){
+      var note = document.getElementById("g-integrity"); note.hidden=false;
+      note.textContent = "Integrity: "
+        + (res!=null ? ("tape residual "+fnum(res*1000,1)+" mm") : "")
+        + (g.cond_warn ? "  · near-collinear references (condition flag)" : "")
+        + " — saved, but re-check the tapes / sensor log.";
+    }
+  } else if(D.state==="input"){
+    initGroundTruthEntry();
+  } else {
+    show("gtpanel",false);
+  }
+
+  function renderChips(){
+    document.querySelectorAll("#chips .chip[data-s]").forEach(function(c){
+      var s=c.dataset.s;
+      c.classList.toggle("selected", selected.indexOf(s)>=0);
+      c.classList.toggle("recommended", (D.recommended||[]).indexOf(s)>=0);
+    });
+    setHTML("rec-names", (D.recommended||["--","--"]).join(", "));
+    setText("lab-a", "L → " + (selected[0]||"--"));
+    setText("lab-b", "L → " + (selected[1]||"--"));
+    if(typeof drawScope==="function") drawScope();
+  }
+
+  // Live ground-truth entry (section 6.2). RELATIVE endpoints only: served by the
+  // report server -> works; opened from file:// -> health check fails -> button
+  // disabled + the operator is pointed at serve_report.py. Success-gated: the page
+  // only freezes (reload of the server-rewritten report.html) on 200 persisted.
+  function initGroundTruthEntry(){
+    var save=document.getElementById("gtsave");
+    var note=document.getElementById("gtnote");
+    var srv=D.server||{};
+    renderChips();
+    // chip override: exactly two selected (a third evicts the oldest).
+    document.querySelectorAll("#chips .chip[data-s]").forEach(function(c){
+      c.addEventListener("click", function(){
+        var s=c.dataset.s, i=selected.indexOf(s);
+        if(i>=0) return;                       // keep exactly two; click another to change
+        selected.push(s); if(selected.length>2) selected.shift();
+        renderChips();
+      });
+    });
+    document.getElementById("accept-rec").addEventListener("click", function(){
+      selected=(D.recommended||[]).slice(0,2); renderChips();
+    });
+    save.disabled=true; note.textContent="Checking for a live report server...";
+    fetch(srv.health, {method:"GET", cache:"no-store"})
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+      .then(function(){ save.disabled=false;
+        note.textContent="Server connected. Measure the three tapes, then save."; })
+      .catch(function(){ save.disabled=true;
+        note.textContent="Start the report server to enter ground truth:  "
+          +"python scripts/serve_report.py --session "+(D.session_id||"<id>"); });
+    save.addEventListener("click", function(){ submitGroundTruth(srv); });
+  }
+  function submitGroundTruth(srv){
+    var lc=parseFloat(document.getElementById("lc").value);
+    var la=parseFloat(document.getElementById("la").value);
+    var lb=parseFloat(document.getElementById("lb").value);
+    var msg=document.getElementById("gtmsg");
+    if(selected.length!==2){ msg.textContent="Select exactly two sensors."; return; }
+    if(!(lc>0)||!(la>0)||!(lb>0)){ msg.textContent="Enter all three tape distances (metres)."; return; }
+    var save=document.getElementById("gtsave"); save.disabled=true; msg.textContent="Saving...";
+    fetch(srv.ground_truth, {method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({session_id:srv.session_id, L_centroid:lc,
+                             sensors:selected.slice(), L_a:la, L_b:lb})})
+      .then(function(r){ return r.json().then(function(j){ return {s:r.status, b:j}; }); })
+      .then(function(res){
+        if(res.s===200 && res.b && res.b.persisted){ location.reload(); return; }
+        save.disabled=false;
+        msg.textContent = (res.b && res.b.error) || ("Save failed ("+res.s+")");
+      })
+      .catch(function(){ save.disabled=false;
+        msg.textContent="Network error - is the report server running?"; });
+  }
+
+  // ---- stat strip ----
+  (function(){
+    var y=D.yield, card=document.getElementById("card-yield");
+    if(y){ setHTML("s-yield", y.used+"<small> / "+(y.in_window==null?"?":y.in_window)+"</small>");
+      card.classList.add(y.pass?"ok":"bad"); }
+    var st=D.stats||{};
+    setHTML("s-head",(st.heading_deg!=null?fnum(st.heading_deg,1):"--")+"°<small> · "
+      +(st.v_h_m_s!=null?fnum(st.v_h_m_s,2):"--")+" m/s</small>");
+    setHTML("s-temp",(st.temperature_c!=null?fnum(st.temperature_c,1):"--")+"°C<small> · "
+      +(st.sound_speed_m_s!=null?fnum(st.sound_speed_m_s,1):"--")+"</small>");
+    setHTML("s-dof",(st.dof!=null?st.dof:"--")
+      +(st.n_points!=null?"<small> dof · N="+st.n_points+"</small>":"<small> dof</small>"));
+    setText("s-malf", st.malformed!=null?String(st.malformed):"--");
+  })();
+
+  // ---- caveat ----
+  if(D.caveat){ show("caveat",true); setText("caveat-text"," "+D.caveat); }
+
+  /* ============================================================
+     POLAR LANDING SCOPE  (mock visual; fed from D.*)
+     ============================================================ */
+  function glowDot(x,px,py,c,r){ x.save();x.shadowColor=c;x.shadowBlur=14;
+    x.beginPath();x.arc(px,py,r,0,7);x.fillStyle=c;x.fill();x.restore(); }
+
+  function drawScope(){
+    var cv=document.getElementById("scope"); if(!cv) return;
+    var x=cv.getContext("2d"), W=cv.width, H=cv.height, cx=W/2, cy=H/2;
+    var RMAX=3.0, sc=(Math.min(W,H)/2-26)/RMAX;
+    var P=function(mx,mz){ return [cx+mx*sc, cy-mz*sc]; };
+    x.clearRect(0,0,W,H);
+    // range rings
+    x.font="10px ui-monospace,monospace";
+    [0.5,1.0,1.5,2.0,2.5,3.0].forEach(function(rr){
+      x.beginPath();x.arc(cx,cy,rr*sc,0,7);x.strokeStyle="rgba(94,180,205,.13)";x.lineWidth=1;x.stroke();
+      x.fillStyle="rgba(81,101,115,.9)";x.fillText(rr.toFixed(1)+" m", cx+4, cy-rr*sc-3);
+    });
+    // bearing spokes + degree labels (000-330)
+    for(var a=0;a<360;a+=30){ var rad=a*Math.PI/180; x.beginPath();x.moveTo(cx,cy);
+      x.lineTo(cx+Math.cos(rad)*RMAX*sc, cy-Math.sin(rad)*RMAX*sc);
+      x.strokeStyle="rgba(94,180,205,.07)";x.lineWidth=1;x.stroke();
+      var bx=cx+Math.cos(rad)*(RMAX*sc+13), by=cy-Math.sin(rad)*(RMAX*sc+13);
+      x.fillStyle="rgba(91,113,128,.8)";x.font="9px ui-monospace,monospace";
+      x.fillText((a<100?("0"+a).slice(-3):String(a)), bx-8, by+3); }
+    // center reticle
+    x.strokeStyle="rgba(70,227,198,.5)";x.lineWidth=1;x.beginPath();
+    x.moveTo(cx-10,cy);x.lineTo(cx-4,cy);x.moveTo(cx+4,cy);x.lineTo(cx+10,cy);
+    x.moveTo(cx,cy-10);x.lineTo(cx,cy-4);x.moveTo(cx,cy+4);x.lineTo(cx,cy+10);x.stroke();
+    // sensor dots in bracket boxes + labels (no connecting triangle)
+    var V=(D.geometry&&D.geometry.vertices_xz)||[];
+    if(V.length===3){
+      V.forEach(function(v,i){ var p=P(v[0],v[1]);
+        x.strokeStyle="rgba(111,176,255,.5)";x.lineWidth=1;x.strokeRect(p[0]-6,p[1]-6,12,12);
+        x.beginPath();x.arc(p[0],p[1],3.5,0,7);x.fillStyle="#6fb0ff";x.fill();
+        x.fillStyle="rgba(111,176,255,.85)";x.font="10px ui-monospace,monospace";x.fillText("S"+(i+1),p[0]+8,p[1]-6); });
+      // highlight the selected reference sensors with a cyan ring (v2.3 G1) so the
+      // operator sees which references they are measuring to before submitting.
+      var sel=selectedSensors(), nameIdx={S1:0,S2:1,S3:2};
+      sel.forEach(function(nm){ var k=nameIdx[nm]; if(k==null||!V[k])return; var p=P(V[k][0],V[k][1]);
+        x.beginPath();x.arc(p[0],p[1],9,0,7);x.strokeStyle="rgba(70,227,198,.9)";x.lineWidth=2;x.stroke(); });
+    }
+    x.beginPath();x.arc(cx,cy,2.5,0,7);x.fillStyle="rgba(233,245,246,.5)";x.fill();
+    // kalman ground-track (faint dashed) into the landing
+    var tj=D.trajectory;
+    if(tj&&tj.xk&&tj.xk.length){
+      x.beginPath(); for(var i=0;i<tj.xk.length;i++){ var p=P(tj.xk[i],tj.zk[i]); i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]); }
+      x.strokeStyle="rgba(70,227,198,.3)";x.lineWidth=1.5;x.setLineDash([3,3]);x.stroke();x.setLineDash([]);
+    }
+    // predicted return + sigma ellipse (point follows channel; ellipse from raw cov)
+    var b=readoutBlock()||raw;
+    if(b&&b.x_m!=null){ var lp=P(b.x_m,b.z_m);
+      if(raw&&raw.cov_xz_m2){ drawEllipse(x,lp,raw.cov_xz_m2,sc); }
+      glowDot(x,lp[0],lp[1],"#46e3c6",5);
+    }
+    // ground truth + coral error vector (frozen)
+    if(D.state==="frozen"&&D.ground_truth){ var g=D.ground_truth, gp=P(g.x_m,g.z_m);
+      if(raw&&raw.x_m!=null){ var rp=P(raw.x_m,raw.z_m);
+        x.beginPath();x.moveTo(rp[0],rp[1]);x.lineTo(gp[0],gp[1]);
+        x.strokeStyle="rgba(255,93,108,.9)";x.lineWidth=1.6;x.stroke(); }
+      glowDot(x,gp[0],gp[1],"#ffb24a",5);
+    }
+  }
+  function drawEllipse(x,center,cov,sc){
+    var a=cov[0][0],b=cov[0][1],c=cov[1][1];
+    var tr=a+c, det=a*c-b*b, dsc=Math.sqrt(Math.max(0,tr*tr/4-det));
+    var l1=tr/2+dsc, l2=tr/2-dsc; if(l1<=0) return;
+    var th=Math.atan2(l1-a,b); if(Math.abs(b)<1e-15) th=(a>=c?0:Math.PI/2);
+    x.save();x.translate(center[0],center[1]);x.rotate(-th);
+    x.beginPath();x.ellipse(0,0,Math.sqrt(Math.max(l1,0))*sc,Math.sqrt(Math.max(l2,0))*sc,0,0,7);
+    x.strokeStyle="rgba(70,227,198,.55)";x.lineWidth=1.2;x.stroke();
+    x.fillStyle="rgba(70,227,198,.10)";x.fill();x.restore();
+  }
+
+  /* ============================================================
+     TRAJECTORY  — 2D vertical profile / 3D path (mock visual; D.*)
+     ============================================================ */
+  var dim="2d", rot={x:-0.35,y:0.7}, drag=null, RBALL=D.ball_radius_m;
+  function heading(){ return (raw&&raw.heading_deg!=null)?raw.heading_deg*Math.PI/180:0; }
+  function downrange(px,pz){ var ph=heading(); return px*Math.cos(ph)+pz*Math.sin(ph); }
+  function solve(M,r){ var n=r.length,A=M.map(function(row,i){return row.concat(r[i]);});
+    for(var c=0;c<n;c++){ var p=c; for(var i=c+1;i<n;i++) if(Math.abs(A[i][c])>Math.abs(A[p][c])) p=i;
+      var t=A[c];A[c]=A[p];A[p]=t; if(Math.abs(A[c][c])<1e-12) return null;
+      for(i=0;i<n;i++) if(i!==c){ var f=A[i][c]/A[c][c]; for(var j=c;j<=n;j++) A[i][j]-=f*A[c][j]; } }
+    return A.map(function(row,i){ return row[n]/A[i][i]; }); }
+  function polyfit(xs,ys,deg){ var n=xs.length,m=deg+1,A=[];
+    for(var i=0;i<n;i++){ var row=[]; for(var j=0;j<m;j++) row.push(Math.pow(xs[i],deg-j)); A.push(row); }
+    var N=[],r=[]; for(var jj=0;jj<m;jj++){ N.push([]); var s=0;
+      for(var k=0;k<m;k++){ var v=0; for(i=0;i<n;i++) v+=A[i][jj]*A[i][k]; N[jj].push(v); }
+      for(i=0;i<n;i++) s+=A[i][jj]*ys[i]; r.push(s); }
+    return solve(N,r); }
+
+  function drawProf(){ dim==="2d"?drawProf2D():drawProf3D(); }
+
+  function drawProf2D(){
+    var cv=document.getElementById("prof"), x=cv.getContext("2d");
+    var W=cv.width,H=cv.height,L=60,R=24,T=20,B=40;
+    x.clearRect(0,0,W,H);
+    var tj=D.trajectory;
+    if(!tj||!tj.xk||!tj.xk.length){ x.fillStyle="rgba(81,101,115,.9)";x.font="13px ui-monospace,monospace";
+      x.fillText("No trajectory to display.",L,H/2); return; }
+    var s=[],y=[],sr=[],yr=[];
+    for(var i=0;i<tj.xk.length;i++){ s.push(downrange(tj.xk[i],tj.zk[i])); y.push(tj.yk[i]); }
+    for(i=0;i<tj.xr.length;i++){ sr.push(downrange(tj.xr[i],tj.zr[i])); yr.push(tj.yr[i]); }
+    var b=readoutBlock()||raw, landS=(b&&b.x_m!=null)?downrange(b.x_m,b.z_m):null;
+    var allS=s.concat(sr,landS!=null?[landS]:[]), allY=y.concat(yr,[RBALL]);
+    var sMax=Math.max(2.0, Math.max.apply(null,allS)*1.05);
+    var yMax=Math.max(1.3, Math.max.apply(null,allY)*1.1);
+    var X=function(v){ return L+(v/sMax)*(W-L-R); }, Y=function(v){ return H-B-(v/yMax)*(H-T-B); };
+    // grid
+    x.strokeStyle="rgba(94,180,205,.08)";x.lineWidth=1;x.fillStyle="rgba(81,101,115,.9)";x.font="10px ui-monospace,monospace";
+    for(var sg=0;sg<=sMax+1e-9;sg+=0.5){ x.beginPath();x.moveTo(X(sg),T);x.lineTo(X(sg),H-B);x.stroke();x.fillText(sg.toFixed(1),X(sg)-6,H-B+16); }
+    for(var vg=0;vg<=yMax;vg+=0.4){ x.beginPath();x.moveTo(L,Y(vg));x.lineTo(W-R,Y(vg));x.stroke();x.fillText(vg.toFixed(1),L-26,Y(vg)+3); }
+    x.fillStyle="rgba(81,101,115,.95)";x.fillText("downrange s (m)",W-150,H-B+16);
+    x.save();x.translate(16,H/2);x.rotate(-Math.PI/2);x.fillText("height y (m)",0,0);x.restore();
+    // contact line y = r_ball
+    x.beginPath();x.setLineDash([4,4]);x.moveTo(L,Y(RBALL));x.lineTo(W-R,Y(RBALL));x.strokeStyle="rgba(255,178,74,.4)";x.stroke();x.setLineDash([]);
+    x.fillStyle="rgba(255,178,74,.7)";x.fillText("y = r_ball",W-R-72,Y(RBALL)-5);
+    // cosmetic parabola re-fit over the kalman points (display-only)
+    var t=tj.t, cy=polyfit(t,y,2), cs=polyfit(t,s,1);
+    if(cy&&cs){ var tEnd=t[t.length-1];
+      if(cy[0]<0){ var disc=cy[1]*cy[1]-4*cy[0]*(cy[2]-RBALL);
+        if(disc>=0){ tEnd=Math.max((-cy[1]-Math.sqrt(disc))/(2*cy[0]),(-cy[1]+Math.sqrt(disc))/(2*cy[0])); } }
+      x.beginPath(); for(i=0;i<=120;i++){ var tv=t[0]+(tEnd-t[0])*i/120;
+        var sv=cs[0]*tv+cs[1], yv=cy[0]*tv*tv+cy[1]*tv+cy[2]; var px=X(sv),py=Y(yv); i?x.lineTo(px,py):x.moveTo(px,py); }
+      x.strokeStyle="rgba(111,176,255,.85)";x.lineWidth=1.5;x.setLineDash([6,4]);x.stroke();x.setLineDash([]); }
+    // kalman path
+    x.beginPath(); for(i=0;i<s.length;i++){ var px=X(s[i]),py=Y(y[i]); i?x.lineTo(px,py):x.moveTo(px,py); }
+    x.strokeStyle="#46e3c6";x.lineWidth=2;x.stroke();
+    // raw points
+    for(i=0;i<sr.length;i++){ x.beginPath();x.arc(X(sr[i]),Y(yr[i]),3,0,7);x.fillStyle="rgba(126,152,167,.9)";x.fill(); }
+    // predicted landing
+    if(landS!=null){ glowDot(x,X(landS),Y(RBALL),"#46e3c6",5); }
+    setText("traj-hint","downrange s = x·cosφ + z·sinφ along heading φ.");
+  }
+
+  function project(p){ var cy=Math.cos(rot.y),sy=Math.sin(rot.y),cx=Math.cos(rot.x),sx=Math.sin(rot.x);
+    var X=p[0]*cy - p[2]*sy, Z=p[0]*sy + p[2]*cy, Y=p[1]*cx - Z*sx; return [X,Y]; }
+  function drawProf3D(){
+    var cv=document.getElementById("prof"), x=cv.getContext("2d");
+    var W=cv.width,H=cv.height,cx=W/2,cyc=H/2+30,sc=140;
+    x.clearRect(0,0,W,H);
+    var tj=D.trajectory; if(!tj||!tj.xk||!tj.xk.length){ return; }
+    var tr=function(p){ var q=project(p); return [cx+q[0]*sc, cyc-q[1]*sc]; };
+    // floor grid
+    x.strokeStyle="rgba(94,180,205,.10)";x.lineWidth=1;
+    for(var g=-1;g<=2;g+=0.5){ var a=tr([g,0,-1.5]),b=tr([g,0,1.5]);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();
+      var c=tr([-1,0,g-0.5]),d=tr([2,0,g-0.5]);x.beginPath();x.moveTo(c[0],c[1]);x.lineTo(d[0],d[1]);x.stroke(); }
+    // sensor triangle on floor
+    var V=(D.geometry&&D.geometry.vertices_xz)||[];
+    if(V.length===3){ x.beginPath(); V.forEach(function(v,i){ var q=tr([v[0],0,v[1]]); i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]); });
+      x.closePath();x.strokeStyle="rgba(111,176,255,.5)";x.lineWidth=1.2;x.stroke();
+      V.forEach(function(v){ var q=tr([v[0],0,v[1]]); glowDot(x,q[0],q[1],"#6fb0ff",3); }); }
+    // kalman path
+    x.beginPath(); for(var i=0;i<tj.xk.length;i++){ var q=tr([tj.xk[i],tj.yk[i],tj.zk[i]]); i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]); }
+    x.strokeStyle="#46e3c6";x.lineWidth=2;x.stroke();
+    // raw points
+    for(i=0;i<tj.xr.length;i++){ var p=tr([tj.xr[i],tj.yr[i],tj.zr[i]]); x.beginPath();x.arc(p[0],p[1],3,0,7);x.fillStyle="rgba(126,152,167,.9)";x.fill(); }
+    // landing + GT
+    var b=readoutBlock()||raw;
+    if(b&&b.x_m!=null){ var lp=tr([b.x_m,RBALL,b.z_m]); glowDot(x,lp[0],lp[1],"#46e3c6",5); }
+    if(D.state==="frozen"&&D.ground_truth){ var gp=tr([D.ground_truth.x_m,RBALL,D.ground_truth.z_m]); glowDot(x,gp[0],gp[1],"#ffb24a",5); }
+    setText("traj-hint","3-D flight path · drag to rotate.");
+  }
+  (function init3Ddrag(){
+    var cv=document.getElementById("prof");
+    cv.addEventListener("pointerdown",function(e){ if(dim==="3d"){ drag={x:e.clientX,y:e.clientY}; cv.setPointerCapture(e.pointerId); } });
+    cv.addEventListener("pointermove",function(e){ if(drag){ rot.y+=(e.clientX-drag.x)*0.01; rot.x+=(e.clientY-drag.y)*0.01; drag={x:e.clientX,y:e.clientY}; drawProf3D(); } });
+    cv.addEventListener("pointerup",function(){ drag=null; });
+  })();
+  (function initDim(){
+    var btns=document.querySelectorAll("#dim-toggle button");
+    btns.forEach(function(btn){ btn.addEventListener("click",function(){ dim=btn.dataset.dim;
+      btns.forEach(function(b){ b.setAttribute("aria-pressed", b===btn?"true":"false"); });
+      document.getElementById("proftitle").textContent = dim==="2d"
+        ? "vertical profile (downrange × height)" : "3-D flight path · drag to rotate";
+      drawProf(); }); });
+  })();
+
+  /* ============================================================
+     RANGE VS TIME  (real Stage-1 feature; mock panel chrome)
+     ============================================================ */
+  function drawRVT(){
+    var cv=document.getElementById("rvt"); if(!cv) return;
+    var x=cv.getContext("2d"), W=cv.width, H=cv.height; x.clearRect(0,0,W,H);
+    var rv=D.range_vs_time;
+    if(!rv||!rv.sensors){ x.fillStyle="rgba(81,101,115,.9)";x.font="12px ui-monospace,monospace";x.fillText("No triplet data.",16,24); return; }
+    var allT=[],allR=[]; rv.sensors.forEach(function(s){ allT=allT.concat(s.t); allR=allR.concat(s.range); });
+    if(!allT.length){ x.fillStyle="rgba(81,101,115,.9)";x.font="12px ui-monospace,monospace";x.fillText("No triplet data.",16,24); return; }
+    var tMin=Math.min.apply(null,allT),tMax=Math.max.apply(null,allT);
+    var rMin=Math.min.apply(null,allR),rMax=Math.max.apply(null,allR), pad=52, rowH=(H-24)/3;
+    rv.sensors.forEach(function(s,si){
+      var y0=si*rowH+10, y1=y0+rowH-16;
+      var X=function(v){ return pad+(v-tMin)/((tMax-tMin)||1)*(W-pad-16); };
+      var Y=function(v){ return y1-(v-rMin)/((rMax-rMin)||1)*(y1-y0); };
+      if(rv.window){ x.fillStyle="rgba(70,227,198,.08)"; x.fillRect(X(rv.window[0]),y0,X(rv.window[1])-X(rv.window[0]),y1-y0); }
+      x.strokeStyle="rgba(96,168,196,.16)";x.beginPath();x.moveTo(pad,y1);x.lineTo(W-16,y1);x.stroke();
+      x.fillStyle="rgba(126,152,167,.9)";x.font="10px ui-monospace,monospace";x.fillText("S"+s.sid+" range (m)",pad,y0+9);
+      for(var i=0;i<s.t.length;i++){ var ok=s.valid[i]===1, px=X(s.t[i]), py=Y(s.range[i]);
+        if(ok){ x.beginPath();x.arc(px,py,2.8,0,7);x.fillStyle="#6fb0ff";x.fill(); }
+        else { x.strokeStyle="#ff5d6c";x.lineWidth=1.4;x.beginPath();
+          x.moveTo(px-3,py-3);x.lineTo(px+3,py+3);x.moveTo(px+3,py-3);x.lineTo(px-3,py+3);x.stroke(); } }
+    });
+    x.fillStyle="rgba(81,101,115,.95)";x.font="10px ui-monospace,monospace";x.fillText("t_sample (s)",W-90,H-6);
+  }
+  var det=document.querySelector("details.rvt");
+  if(det){ det.addEventListener("toggle",function(){ if(det.open) drawRVT(); }); }
+
+  // ---- init + responsive redraw ----
+  paintReadout();
+  var rt; window.addEventListener("resize",function(){ clearTimeout(rt);
+    rt=setTimeout(function(){ drawScope(); drawProf(); if(det&&det.open) drawRVT(); },120); });
+})();
+</script>
+</body>
+</html>

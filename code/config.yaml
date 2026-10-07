@@ -1,0 +1,172 @@
+# config.yaml (v2.7) — single source of physical truth
+# 3D Ultrasonic Projectile Landing-Prediction System
+# Politecnico di Milano, Measurements for Mechanical Engineering, A.Y. 2025-26
+#
+# CHANGES v2.1 -> v2.2 (see CLAUDE.md changelog and CHANGES.md):
+#   - NEW  corrections:  section (D1) — hybrid finite-difference temporal correction is now
+#          the production default.
+#   - NEW  simulator:    section (D2) — beam-cone visibility model + session-naming scheme.
+#   - EDIT bias.min_throws comment (D3) — campaign-size guidance updated to measured drag bias.
+
+array:
+  # measured HORIZONTAL vertex coordinates [m] (x, z) in the frame of CLAUDE.md S0.1;
+  # replace ideal values with surveyed ones after build
+  S1_xz: [0.5774, 0.0]
+  S2_xz: [-0.2887, 0.5]
+  S3_xz: [-0.2887, -0.5]
+  S_height_m: 0.045         # (R4) acoustic-centre height above floor; MEASURE after build.
+                            # Equal-height assumption: survey all three pods, require
+                            # agreement within +/-0.003 m. Record per-pod values in comments.
+  tilt_deg: 55.0            # informational; not used in trilateration math
+
+ball:
+  radius_m: 0.1194          # [D6, 2026-07-09] basketball (APPROVED target, Prof. Zappa 2026-07;
+                            # was 0.0335 tennis, then a 0.121 placeholder -- see CLAUDE.md v2.6
+                            # changelog). MEASURED: circumference C = 0.750 m (tape, +/-2 mm),
+                            # r = C/(2*pi) = 0.1194 m, mass m = 0.620 kg (scale). See the D6
+                            # decision-register entry (IMPLEMENTATION_NOTES.md) for the full
+                            # record incl. size-7 sanity-band check and evidence. Used TWICE:
+                            # (R2) added to every raw range before trilateration
+                            # (surface->centre), and landing solve y = radius_m. NOTE: this value
+                            # also feeds simulator.default_drag_k (scales with radius**2) and the
+                            # section-9 acceptance-gate thresholds -- CHANGES.md (D6) Stages 2-4
+                            # audit and re-derive every radius-coupled test/threshold before this
+                            # value is trusted end-to-end. For a bench experiment with a
+                            # not-yet-committed radius, pass characterize_static.py
+                            # --ball-radius-m <r> instead of mutating this value.
+
+acquisition:
+  port: "/dev/ttyACM0"      # or COMx on Windows; CLI-overridable
+  baud: 115200              # (A1) RETAINED. Audit's 500k suggestion solves a non-problem;
+                            #   Serial.print is interrupt-driven & background-drained, see S12.
+  slot_ms: 18
+  triplet_ms: 54
+  pulse_timeout_us: 12500   # (A1) was 15000. d_max=2.0 m round trip ~11.7 ms @20C, ~12.0 ms
+                            #   @5C; 12500 clears it with margin and widens per-slot idle
+                            #   margin ~3 ms -> ~5.5 ms. Echoes > this are gated anyway.
+  ceiling_height_m: null    # (A2) optional; if set, --background-only predicts wrap-around
+                            #   ghost apparent-ranges for verification. null = unknown/skip.
+  sensor_offset_m: [-0.0255, -0.0225, -0.0129]
+                            # [MEASURED, Phase 4A/4D, 2026-07-09] per-sensor electronic offset
+                            #   = mean_measured - reference from the flat-board static study
+                            #   (analyze_static.py: S1 -25.54, S2 -22.54, S3 -12.87 mm, ALL three
+                            #   SIGNIFICANT at >3*sigma/sqrt(N)). Applied as corrected = measured
+                            #   - offset in the trilateration path (a NEGATIVE offset = sensor
+                            #   reads short = ADDS distance). Measurement-layer correction,
+                            #   OUTSIDE bias.py (S7). Does NOT affect the background gate (constant
+                            #   per-sensor shift cancels in the band rule). run_session applies it
+                            #   by DEFAULT; --no-offset-correction disables it. Synthetic sessions
+                            #   ignore it (process_session apply_offset defaults False). null /
+                            #   all-zero = no correction. Source: data/sessions/Flat-Board.
+
+# ---------------------------------------------------------------------------------------------
+# (D1, NEW) Temporal-correction stencil. The temporal correction (CLAUDE.md S8.2c) estimates
+# each sensor's radial range-rate from same-sensor consecutive readings to align d2,d3 back to
+# the triplet's S1 sample instant. Two stencils are available:
+#   central_difference: false  -> FORWARD difference everywhere. Last triplet has no successor,
+#                                 so it is discarded. Larger curvature residual (~ -24 mm
+#                                 along-track at the landing on simulator arcs).
+#   central_difference: true   -> HYBRID stencil (PRODUCTION DEFAULT as of v2.2):
+#                                 forward difference at the FIRST triplet,
+#                                 central difference for all INTERIOR triplets,
+#                                 backward difference at the LAST triplet.
+#                                 Keeps ALL N triplets (note: forward mode kept only N-1, so
+#                                 hybrid actually RECOVERS the last triplet). Interior residual
+#                                 drops to ~ -10 mm; endpoints retain ~ -24 mm; net pipeline
+#                                 systematic ~ -12 to -15 mm along-track. NaN-safe: if a needed
+#                                 neighbour is invalid, that triplet falls back to the one-sided
+#                                 difference it can still form (forward or backward).
+# ---------------------------------------------------------------------------------------------
+corrections:
+  central_difference: true    # (D1) hybrid stencil; see block above. Set false for legacy
+                              #      forward-only mode.
+
+# ---------------------------------------------------------------------------------------------
+# gates: RESTORED during v2.2 implementation — this section is mandated by CLAUDE.md S2 (the
+# authoritative schema) but was missing from the regenerated v2.2 config.yaml, which broke every
+# module that reads it (background, segmentation, process_throw, simulator padding). Values are
+# identical to v2.1 / CLAUDE.md v2.2 S2.
+# ---------------------------------------------------------------------------------------------
+gates:
+  d_max_m: 2.0
+  bg_k_sigma: 3.5
+  bg_n_triplets: 200
+  bg_min_samples: 30        # (R1)
+  bg_timeout_skip: 0.9      # (R1)
+  d_min_band_m: 0.025       # (R1)
+  arm_M: 2
+  close_K: 3
+
+kalman:
+  sigma_pos_m: 0.010        # [MEASURED, Phase 4B, 2026-07-09] per-axis BASE measurement noise.
+                            # Basketball target, 3 sensors x 3 distances (~1.0/1.3/1.7 m), n=200
+                            # each. Static sigma [mm]: S1 7.68/3.16/4.73, S2 12.88/3.74/3.15,
+                            # S3 9.16/15.65/9.02 (9 values; median 7.68 mm). 0.010 chosen as the
+                            # conservative end rather than the bare median, since S3's alignment
+                            # was flagged unverified (offset sign/magnitude diverges from its
+                            # Phase-4A board baseline -- see IMPLEMENTATION_NOTES.md Part 14) and
+                            # its farther-distance sigmas (9-16 mm) are the least trustworthy of
+                            # the set; an over-estimated sigma_pos_m costs only mild, safe
+                            # conservatism (filter leans more on the motion model). Report note:
+                            # this is a RANGE-domain sigma used directly as a per-axis position
+                            # noise; horizontal position noise ~ sigma x GDOP (~2.3) -- GDOP factor
+                            # NOT applied here (state this explicitly in the error budget).
+  hetero_R: true            # (R6) per-triplet R with sigma_y = (d/y)*sigma_d
+  q_scale: 1.0e-4           # NOTE: must keep the decimal point — YAML 1.1 parses bare
+                            #       "1e-4" as a STRING, not a float (resolver needs a dot).
+
+landing:
+  min_fit_points: 4
+
+ground_truth:               # (R8) standing uncertainty of the measurement method
+  sigma_tape_m: 0.005       # per tape reading (first-contact mark + tape)
+  recommend_sensors: true   # (v2.3 G1) suggest the 2 sensors nearest the predicted landing
+  cond_warn: 1.0e+4         # (v2.3 G1) near-collinear references flag (warn only; never raises).
+                            #   NOTE: SIGNED exponent required (YAML 1.1 parses 1.0e4 as a STRING;
+                            #   see H-1) -- 1.0e+4, not 1.0e4.
+  residual_warn_m: 0.05     # (v2.3 G1) LS residual above which tapes / sensor log are flagged suspect
+
+bias:
+  model_path: "correction_model.json"
+  alpha: 0.05
+  min_throws: 8             # hard floor for the CODE, NOT the plan.
+                            # (D3) Measured realistic tennis-ball along-track drag bias is
+                            #      ~8 mm vs ~20 mm landing scatter, so the 95% CI rarely
+                            #      excludes zero below ~30 throws. CAMPAIGN PLAN: 15-20
+                            #      ground-truthed throws (R9); do 30 if time permits. A null
+                            #      result at 15-20 is a legitimate physics finding
+                            #      ("drag below noise floor"), not a code failure.
+
+sessions:                   # (v2.4 D5) on-disk storage layout (NOT physics)
+  demo_subdir: "demo"       # simulator/demo sessions live in data/sessions/<demo_subdir>/ with
+                            #   their own campaign.html; live sessions stay directly under
+                            #   data/sessions/. RESERVED directory name -- never name a live
+                            #   session "demo". A directory counts as a session iff it contains
+                            #   session.json (CLAUDE section 8.7 / 12.2), so the live campaign
+                            #   builder skips this container automatically (no name matching).
+
+# ---------------------------------------------------------------------------------------------
+# (D2, NEW) Simulator settings. These affect ONLY pipeline/simulator.py (synthetic data); they
+# have no effect on live hardware sessions. The beam-cone model makes synthetic triplet counts
+# realistic: without it the simulator over-produced 20-22 flight triplets per throw, whereas a
+# real HC-SR04 sees the ball only ~5-6 times because detection requires the ball to fall inside
+# the transducer's narrow cone over the short overlap column.
+# ---------------------------------------------------------------------------------------------
+simulator:
+  beam_cone_enabled: true      # (D2) gate synthetic detections to the sensor cone. false =
+                               #      legacy over-producing behaviour (kept for A/B comparison).
+  beam_half_angle_deg: 7.0     # (D2) ESTIMATE of the effective HALF-angle of the HC-SR04
+                               #      detection cone for the [D6] BASKETBALL target at ~1-1.5 m
+                               #      (was "tennis-ball-sized"; the larger, acoustically hard ball
+                               #      likely WIDENS the effective cone -- CLAUDE.md v2.6 D6).
+                               #      UNVERIFIED -- published HC-SR04 beam figures vary and refer
+                               #      to large flat targets. Tune this against the S7 static
+                               #      detectability data (timeout fractions vs range/angle),
+                               #      re-run with the basketball, before trusting synthetic counts.
+  session_prefix: "sim"        # (D2) directory name prefix for synthetic sessions.
+  session_name_scheme: "{prefix}_{date}_{time}_S{idx:02d}"
+                               # (D2) -> e.g. sim_2026-06-12_143052_S03
+                               #      date = YYYY-MM-DD, time = HHMMSS (24h, to the SECOND).
+                               #      Time kills cross-run collisions (re-running the same day);
+                               #      the S{idx} counter kills within-batch collisions (one
+                               #      --n-sessions 12 run creates all 12 in the same second).

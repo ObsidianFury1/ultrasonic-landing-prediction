@@ -1,0 +1,29 @@
+# =============================================================================
+# requirements.txt -- Python dependencies
+# 3D Ultrasonic Projectile Landing-Prediction System (CLAUDE.md v2.7)
+#
+# Python >= 3.10
+# Install:  pip install -r requirements.txt
+#
+# Recommended: use a virtual environment to isolate dependencies.
+#   Windows (this project):
+#     python -m venv .venv
+#     .venv\Scripts\activate
+#     pip install -r requirements.txt
+#   Linux / Mac:
+#     python3 -m venv .venv
+#     source .venv/bin/activate
+#     pip install -r requirements.txt
+#
+# To lock exact versions once the environment works:
+#     pip freeze > requirements.lock.txt
+# =============================================================================
+
+numpy>=1.26          # numerical core: linear algebra (trilateration solve), arrays
+scipy>=1.11          # stats (t-distribution gate in bias.py), linregress, optimization
+pandas>=2.1          # triplet/trajectory CSV handling and per-session/campaign tables
+matplotlib>=3.8      # all figures: trajectories, residuals, landing scatter, histograms
+filterpy>=1.4.5      # KalmanFilter implementation (7-state augmented filter, kalman.py)
+pyserial>=3.5        # serial link to the Arduino Nano Every (acquisition.py) -- imported as `serial`
+PyYAML>=6.0          # parse config.yaml -- imported as `yaml`
+pytest>=7.4          # test suite under tests/ (incl. the end-to-end acceptance gate)
