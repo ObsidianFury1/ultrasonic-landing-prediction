@@ -119,9 +119,17 @@ docs/                      slide-figure scripts and archived original READMEs
 
 ## Not included in this repository
 
-Raw phone footage (about 1 GB), the raw calibration photos, and the slide deck are too large for git and are
-excluded. See [`optical/data/optical/README.md`](optical/data/optical/README.md) for what is missing and how
-the footage is shared. Every other result in this README can be reproduced from the files here.
+Raw phone footage (about 1 GB), the raw calibration photos, and the slide deck are too large for git. They
+are attached to the [v1.0 release](https://github.com/ObsidianFury1/ultrasonic-landing-prediction/releases/tag/v1.0):
+
+- [`optical-footage.zip`](https://github.com/ObsidianFury1/ultrasonic-landing-prediction/releases/download/v1.0/optical-footage.zip)
+  (1.08 GB): the optical clips, calibration photos and calibration frames. See
+  [`optical/data/optical/README.md`](optical/data/optical/README.md) for how to restore it.
+- [`Politecnico_Milano_Measurements_Presentation.pptx`](https://github.com/ObsidianFury1/ultrasonic-landing-prediction/releases/download/v1.0/Politecnico_Milano_Measurements_Presentation.pptx)
+  (55 MB): the project presentation. The scripts that generated its figures are in
+  [`docs/presentation-figures/`](docs/presentation-figures/).
+
+Every other result in this README can be reproduced from the files here.
 
 ## How it was built
 
