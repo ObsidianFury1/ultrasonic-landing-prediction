@@ -12,7 +12,13 @@ Footage download (1.08 GB): the [v1.0 release](https://github.com/ObsidianFury1/
 asset `optical-footage.zip` (direct link:
 [download](https://github.com/ObsidianFury1/ultrasonic-landing-prediction/releases/download/v1.0/optical-footage.zip)).
 The zip also contains the raw checkerboard photos (`calib/raw/`) and `calibration-frames/`.
-SHA-256: `816a1ca649740fbbeed4c52e392b9f683a43423be12998d6116f4f92474c03bb`
+SHA-256: `ec472f6ec31d6652e6d3ac84d721f35be4ca172db8c91a33a543a2710d7c3fb6`
+
+Privacy note: the clips were published with all location, device and timestamp metadata removed. The video
+and audio streams and every frame timestamp are bit-for-bit identical to the originals (only the container
+metadata was rewritten, no re-encoding). One visible side effect: a container's reported average frame rate
+reads exactly 240.0 fps instead of values such as 239.98; pass the measured rate to
+`scripts/process_clip.py --fps-measured` as the spec requires.
 
 To restore, unzip it into the **repository root**: its paths start with `optical/`, so every file lands in
 the right place.
